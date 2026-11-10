@@ -1,9 +1,29 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hidden Word</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Memorize Scripture with your own verse list, built-in challenges, fill-in-the-blank quizzes and a Sword Drill.">
+<meta name="theme-color" content="#2E6A55">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Hidden Word">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png?v=3">
+<link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167.png?v=3">
+<link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png?v=3">
+<link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
+<link rel="manifest" href="manifest.webmanifest?v=3">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Figtree:wght@400;500;600;700&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
 <style>
 /* Layout: one phone column, four tabs pinned to the bottom, quiz and editor open as sheets */
 :root{
@@ -101,6 +121,7 @@ h3{font-size:1.05rem;margin:0}
 .rem-grid input,.rem-grid select{height:50px;min-height:0;padding-block:0}
 .f input[type="time"]{-webkit-appearance:none;appearance:none;min-width:0;width:100%;display:block;text-align:left;min-height:48px}
 .f input[type="time"]::-webkit-date-and-time-value{text-align:left}
+label.btn{position:relative;overflow:hidden}
 .nw{white-space:nowrap}
 .donate-text{font-family:var(--scripture);font-size:1.25rem;line-height:1.5;margin:0}
 .refs{margin-top:4px}
@@ -481,6 +502,7 @@ function viewMore(){
   return `<div class="stack"><h2>More</h2><div class="card menu">
     ${item('songs','Scripture Songs',SONGS.length+' songs from your Amazon Music playlist','<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>')}
     ${item('sword','Sword Drill','A random verse from anywhere in the Bible','<path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/>')}
+    ${item('backup','Backup','Save or restore your verses and progress','<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>')}
     ${item('settings','Settings','Daily reminder, default version, about','<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>')}
     ${item('donate','Donate','Ronald McDonald House of Galveston','<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>')}
   </div></div>`;
@@ -566,6 +588,54 @@ function viewSongs(){
   <article class="card"><h3>Scripture Songs challenge</h3><p class="hint">Memorize one song’s passage a week for 12 weeks.</p><div class="row"><button class="btn primary" data-act="tab" data-id="challenges">Go to challenges</button></div></article></div>`;
 }
 let resetAsk=false;
+// Backup: export verses (memorized, working on, or everything) and restore from a backup file.
+const dlCap=(window.claude&&window.claude.use)?window.claude.use('downloads').catch(()=>null):Promise.resolve(null);
+let bkKind='done',bkMsg='';
+const bkSets=()=>({done:S.verses.filter(v=>(v.mastery||0)>=3),learning:S.verses.filter(v=>(v.mastery||0)<3),all:S.verses});
+const bkLabel={done:'Memorized',learning:'Working on',all:'Everything'};
+function bkData(){const list=bkSets()[bkKind];const out={app:'Hidden Word',format:1,exported:new Date().toISOString(),kind:bkKind,verses:list.map(v=>({ref:v.ref,text:v.text,version:v.version,mastery:v.mastery||0,best:v.best||{},added:v.added,last:v.last||null}))};
+  if(bkKind==='all'){out.challenges=S.challenges;out.days=S.days}return out}
+function bkText(){const list=bkSets()[bkKind];const head=`Hidden Word · ${{done:'Memorized verses',learning:'Verses I\u2019m working on',all:'All verses'}[bkKind]} · ${new Date().toLocaleDateString()}\n${list.length} verse${list.length===1?'':'s'}\n`;
+  return head+list.map(v=>`\n${v.ref} (${v.version}) — ${MASTERY[v.mastery||0]}\n${v.text}`).join('\n')+'\n'}
+async function bkSave(name,text){
+  const dl=await dlCap;
+  if(dl){try{await dl.save({filename:name,data:text});toast('File saved')}catch(e){if(e&&e.code==='declined')return;toast('Couldn’t save a file here. Use Copy as text instead.')}return}
+  if(/claude/i.test(location.hostname)){toast('Saving files isn’t available here. Use Copy as text instead.');return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:name.endsWith('.json')?'application/json':'text/plain'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);toast('File saved')
+}
+function bkRestore(raw){
+  let d;try{d=JSON.parse(raw)}catch(e){bkMsg='That file isn’t a Hidden Word backup. Choose a .json file saved from this page.';render();return}
+  if(!d||!Array.isArray(d.verses)){bkMsg='That file has no verses in it. Choose a .json file saved from this page.';render();return}
+  let added=0,updated=0;
+  d.verses.forEach(x=>{if(!x||typeof x.ref!=='string'||typeof x.text!=='string'||!x.ref.trim()||!x.text.trim())return;
+    const ref=x.ref.slice(0,80),text=x.text.slice(0,4000),ver=VERSIONS.includes(x.version)?x.version:'Other',m=Math.max(0,Math.min(3,parseInt(x.mastery)||0));
+    const have=S.verses.find(v=>refKey(v.ref)===refKey(ref)&&v.text===text);
+    if(have){if(m>(have.mastery||0)){have.mastery=m;updated++}}
+    else{const v=mkVerse(ref,text,ver,'mine');v.mastery=m;v.best=(x.best&&typeof x.best==='object')?x.best:{};if(typeof x.added==='string')v.added=x.added.slice(0,10);S.verses.push(v);added++}});
+  if(d.challenges&&typeof d.challenges==='object')Object.keys(d.challenges).forEach(id=>{const c=d.challenges[id];if(CHALLENGES.some(x=>x.id===id)&&!S.challenges[id]&&c&&/^\d{4}-\d{2}-\d{2}$/.test(c.start))S.challenges[id]={start:c.start}});
+  if(Array.isArray(d.days)){const set=new Set(S.days);d.days.forEach(x=>{if(typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x))set.add(x)});S.days=[...set].sort().slice(-400)}
+  save();bkMsg=`Restored. ${added} verse${added===1?'':'s'} added${updated?`, ${updated} updated with more progress`:''}.`;render();
+}
+function viewBackup(){
+  const sets=bkSets();
+  return `<div class="stack"><div><button class="btn ghost small back" data-act="tab" data-id="more">‹ More</button><h2>Backup</h2><p class="hint">Your verses are saved only on this phone, in this browser. Save a backup to keep them safe or move them to another phone.</p></div>
+  <article class="card"><h3>Export</h3>
+    <p class="hint">Choose which verses to back up.</p>
+    <div class="chips">${['done','learning','all'].map(k=>`<button class="chip" data-act="bk-kind" data-id="${k}" aria-pressed="${bkKind===k}">${bkLabel[k]} (${sets[k].length})</button>`).join('')}</div>
+    <p class="hint">${bkKind==='all'?'Everything includes your challenges and streak.':bkKind==='done'?'Verses you’ve scored 100% on Hard or 95% on Recite.':'Verses you haven’t memorized yet.'}</p>
+    <div class="stack" style="gap:10px">
+      <button class="btn primary" data-act="bk-json"${sets[bkKind].length?'':' disabled'}>Save backup file</button>
+      <button class="btn" data-act="bk-txt"${sets[bkKind].length?'':' disabled'}>Save as a text list</button>
+      <button class="btn" data-act="bk-copy"${sets[bkKind].length?'':' disabled'}>Copy as text</button>
+    </div>
+    <p class="hint">The backup file can be restored here later. The text list is for reading, printing or sharing.</p>
+  </article>
+  <article class="card"><h3>Restore</h3>
+    <p class="hint">Choose a backup file saved from this page. Verses you don’t have are added; verses you already have keep whichever progress is higher. Nothing is deleted.</p>
+    <label class="btn" for="bkFile" style="cursor:pointer">Choose backup file<input type="file" id="bkFile" accept=".json,application/json" style="position:absolute;width:1px;height:1px;opacity:0"></label>
+    ${bkMsg?`<div class="note" aria-live="polite">${esc(bkMsg)}</div>`:''}
+  </article></div>`;
+}
 function viewSettings(){
   const R=S.reminder||{time:'06:00',days:'daily'};
   return `<div class="stack"><div><button class="btn ghost small back" data-act="tab" data-id="more">‹ More</button><h2>Settings</h2></div>
@@ -613,14 +683,15 @@ function downloadIcs(){
 }
 document.addEventListener('change',e=>{
   if(e.target.id==='remTime'||e.target.id==='remDays'){S.reminder={time:$('#remTime').value||'06:00',days:$('#remDays').value};save()}
+  else if(e.target.id==='bkFile'){const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>bkRestore(String(r.result));r.onerror=()=>{bkMsg='Couldn\u2019t read that file. Try choosing it again.';render()};r.readAsText(f)}
   else if(e.target.id==='plLink'){S.playlist=e.target.value.trim();save();render();toast('Playlist link saved')}
   else if(e.target.id==='defVer'){S.version=e.target.value;save();toast('Default version set to '+S.version)}
 });
 
 function render(){
   const t=S.tab||'today';
-  $('#view').innerHTML=t==='more'?viewMore():t==='songs'?viewSongs():t==='settings'?viewSettings():t==='donate'?viewDonate():t==='sword'?viewSword():t==='list'?viewList():t==='library'?viewLibrary():t==='challenges'?viewChallenges():viewToday();
-  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',(b.dataset.id===t||(b.dataset.id==='more'&&(t==='songs'||t==='settings'||t==='donate'||t==='sword')))?'page':'false'));
+  $('#view').innerHTML=t==='more'?viewMore():t==='songs'?viewSongs():t==='settings'?viewSettings():t==='donate'?viewDonate():t==='sword'?viewSword():t==='backup'?viewBackup():t==='list'?viewList():t==='library'?viewLibrary():t==='challenges'?viewChallenges():viewToday();
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',(b.dataset.id===t||(b.dataset.id==='more'&&(t==='songs'||t==='settings'||t==='donate'||t==='sword'||t==='backup')))?'page':'false'));
   const s=streak();$('#streak').innerHTML=`<b>${s}</b><span>day streak</span>`;
 }
 
@@ -842,6 +913,10 @@ document.addEventListener('click',e=>{
   else if(a==='bank')fillFromBank(+id,b);
   else if(a==='check')check();
   else if(a==='ics')downloadIcs();
+  else if(a==='bk-kind'){bkKind=id;bkMsg='';render()}
+  else if(a==='bk-json')bkSave(`hidden-word-${bkKind==='done'?'memorized':bkKind==='learning'?'working-on':'backup'}-${today()}.json`,JSON.stringify(bkData(),null,2));
+  else if(a==='bk-txt')bkSave(`hidden-word-${bkKind==='done'?'memorized':bkKind==='learning'?'working-on':'all'}-${today()}.txt`,bkText());
+  else if(a==='bk-copy'){const t=bkText();try{navigator.clipboard.writeText(t).then(()=>toast('Copied. Paste it into Notes or an email.'),()=>toast('Couldn\u2019t copy here.'))}catch(err){toast('Couldn\u2019t copy here.')}}
   else if(a==='drill-open')openDrill();
   else if(a==='sd-go'){if(SD.running)return;if(!SD.armed){SD.armed=true;sdPaint()}else{SD.armed=false;sdGo()}}
   else if(a==='sd-show'){SD.shown=true;sdPaint()}
@@ -857,4 +932,5 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden
 render();
 </script>
 
-</body></html>
+</body>
+</html>
