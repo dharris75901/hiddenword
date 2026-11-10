@@ -1,29 +1,9 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Hidden Word</title>
-<meta name="description" content="Memorize Scripture with your own verse list, built-in challenges, fill-in-the-blank quizzes and a Sword Drill.">
-<meta name="theme-color" content="#2E6A55">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Hidden Word">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png?v=3">
-<link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167.png?v=3">
-<link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152.png?v=3">
-<link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120.png?v=3">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=3">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
-<link rel="manifest" href="manifest.webmanifest?v=3">
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Figtree:wght@400;500;600;700&display=swap">
-<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
-</head>
-<body>
 <style>
 /* Layout: one phone column, four tabs pinned to the bottom, quiz and editor open as sheets */
 :root{
@@ -511,8 +491,22 @@ const SD_TOTAL=SD_BOOKS.reduce((a,b)=>a+b[1],0);
 const sdSample=(window.claude&&window.claude.use)?window.claude.use('sample').catch(()=>null):Promise.resolve(null);
 let SD={armed:false,state:'idle',n:5,v:null,shown:false,msg:'',lastBook:null,running:false};
 function sdPick(){for(;;){let n=Math.floor(Math.random()*SD_TOTAL);for(const [book,ch] of SD_BOOKS){if(n<ch){if(book!==SD.lastBook)return {book,chapter:n+1};break}n-=ch}}}
+const sdInClaude=/claude/i.test(location.hostname);
+async function sdFetchApi(){
+  let lastErr={code:'failed'};
+  for(let k=0;k<3;k++){const {book,chapter}=sdPick();
+    try{const r=await fetch('https://bible-api.com/'+encodeURIComponent(book+' '+chapter).replace(/%20/g,'+')+'?translation=kjv');
+      if(!r.ok){lastErr={code:r.status===429?'rate_limited':'failed'};continue}
+      const j=await r.json();const vs=(j&&Array.isArray(j.verses))?j.verses.filter(v=>v&&v.text&&String(v.text).trim()):[];
+      if(!vs.length)continue;
+      const v=vs[Math.floor(Math.random()*vs.length)];
+      return {book,chapter,verse:v.verse,text:String(v.text).replace(/\s+/g,' ').trim()};
+    }catch(e){lastErr={code:'offline'}}}
+  throw lastErr;
+}
 async function sdFetch(){
-  const sample=await sdSample;if(!sample)throw {code:'unavailable'};
+  if(!sdInClaude){try{return await sdFetchApi()}catch(e){const sm=await sdSample;if(!sm)throw e}}
+  const sample=await sdSample;if(!sample){if(sdInClaude)throw {code:'unavailable'};return sdFetchApi()}
   for(let k=0;k<2;k++){const {book,chapter}=sdPick();const r=Math.random().toFixed(4);
     const prompt=`You are a King James Version (1769 text) Bible reference.\nBook: ${book}. Chapter: ${chapter}.\nLet N be the number of verses in ${book} chapter ${chapter} in the KJV. Use verse number floor(${r} * N) + 1.\nReturn that verse's exact KJV wording, word for word, with no added commentary and no verse numbers or pilcrows inside the text.\nRespond with only JSON: {"verse": <integer>, "text": "<verse text>"}`;
     try{const out=await sample.json(prompt,{cache:false,modelTier:'default'});
@@ -543,7 +537,7 @@ async function sdGo(){
   for(let n=5;n>=1;n--){SD.state='count';SD.n=n;sdPaint();await new Promise(r=>setTimeout(r,1000))}
   SD.state='wait';sdPaint();
   try{SD.v=await p;SD.lastBook=SD.v.book;SD.state='verse';markDay();save()}
-  catch(e){SD.state='error';SD.msg=e&&e.code==='not_granted'?'The verse lookup is turned off for this page. Allow it from the page’s Permissions menu, then tap Sword Ready.':e&&e.code==='unavailable'?'Sword Drill looks up verses through Claude, so it works when Hidden Word is opened in the Claude app while signed in.':e&&e.code==='rate_limited'?'Too many verses at once. Wait a minute, then tap Sword Ready.':'That verse didn’t come through. Tap Sword Ready to try again.'}
+  catch(e){SD.state='error';SD.msg=e&&e.code==='not_granted'?'The verse lookup is turned off for this page. Allow it from the page’s Permissions menu, then tap Sword Ready.':e&&e.code==='unavailable'?'Sword Drill looks up verses through Claude, so it works when Hidden Word is opened in the Claude app while signed in.':e&&e.code==='offline'?'Couldn\u2019t reach the Bible lookup. Check your internet connection, then tap New Battle.':e&&e.code==='rate_limited'?'Too many verses at once. Wait a minute, then tap Sword Ready.':'That verse didn’t come through. Tap Sword Ready to try again.'}
   SD.running=false;sdPaint();
 }
 function viewDonate(){
@@ -863,5 +857,4 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden
 render();
 </script>
 
-</body>
-</html>
+</body></html>
