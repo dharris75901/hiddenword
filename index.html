@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hidden Word</title>
+<meta name="description" content="Memorize Scripture with your own verse list, built-in challenges, fill-in-the-blank quizzes and a Sword Drill.">
+<meta name="theme-color" content="#2E6A55">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Hidden Word">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Figtree:wght@400;500;600;700&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: one phone column, four tabs pinned to the bottom, quiz and editor open as sheets */
+:root{
+  --bg:#F1F4F1; --surface:#FFFFFF; --ink:#1B2621; --muted:#5B6962; --line:#D7DED9;
+  --accent:#2E6A55; --accent-ink:#FFFFFF; --accent-soft:#E0ECE6;
+  --brass:#9A6E14; --brass-soft:#F4E9D1;
+  --ok:#2B7A4B; --ok-soft:#DCEFE2; --bad:#B03F2D; --bad-soft:#F7E0DA;
+  --scrim:rgba(20,30,25,.45);
+  --scripture:"Crimson Pro", Georgia, "Times New Roman", serif;
+  --ui:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111714; --surface:#1A221E; --ink:#E5ECE7; --muted:#9AA9A1; --line:#2C3832;
+  --accent:#72B798; --accent-ink:#0E1914; --accent-soft:#1E3229;
+  --brass:#DDAE52; --brass-soft:#332A19;
+  --ok:#6CC28D; --ok-soft:#1B3325; --bad:#E78B76; --bad-soft:#3B231D;
+  --scrim:rgba(0,0,0,.6); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#111714; --surface:#1A221E; --ink:#E5ECE7; --muted:#9AA9A1; --line:#2C3832;
+  --accent:#72B798; --accent-ink:#0E1914; --accent-soft:#1E3229;
+  --brass:#DDAE52; --brass-soft:#332A19;
+  --ok:#6CC28D; --ok-soft:#1B3325; --bad:#E78B76; --bad-soft:#3B231D;
+  --scrim:rgba(0,0,0,.6); color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 120px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.brand{font-family:var(--scripture);font-size:1.9rem;font-weight:600;letter-spacing:-.01em;line-height:1}
+.brand small{display:block;font-family:var(--ui);font-size:.72rem;font-weight:500;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:6px}
+.streak{display:flex;flex-direction:column;align-items:center;background:var(--brass-soft);color:var(--brass);border-radius:12px;padding:6px 12px;min-width:68px}
+.streak b{font-size:1.35rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.streak span{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+h2{font-size:1.3rem;margin:0;text-wrap:balance}
+h3{font-size:1.05rem;margin:0}
+.eyebrow{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.muted{color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.between{justify-content:space-between}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.feature{border-color:var(--accent);box-shadow:0 1px 0 var(--accent)}
+.verse{font-family:var(--scripture);font-size:1.32rem;line-height:1.55;margin:0;overflow-wrap:break-word}
+.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ref{font-weight:700}
+.tag{font-size:.72rem;font-weight:700;letter-spacing:.05em;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted)}
+.vhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dots{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted)}
+.dots i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--accent);display:inline-block}
+.dots i.on{background:var(--accent)}
+.dots.done{color:var(--ok)}
+.btn{min-height:46px;padding:0 18px;border-radius:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--accent);padding:0 8px}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.small{min-height:38px;padding:0 12px;font-size:.92rem}
+.btn:disabled{opacity:.45;cursor:default}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:.92rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.hint{font-size:.92rem;color:var(--muted);margin:0}
+.bar{height:8px;border-radius:4px;background:var(--accent-soft);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.roll{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.roll li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);min-height:52px}
+.roll .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;font-weight:700;flex:none;border:1.5px solid var(--line);color:var(--muted);font-variant-numeric:tabular-nums}
+.roll .n.open{border-color:var(--accent);color:var(--accent)}
+.roll .n.done{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.roll .what{flex:1;min-width:0}
+.roll .what b{display:block}
+.roll .what span{font-size:.85rem;color:var(--muted)}
+.section-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:10px}
+.lib-item{display:flex;gap:12px;align-items:flex-start}
+.lib-item .body{flex:1;min-width:0}
+.lib-item .verse{font-size:1.15rem}
+.empty{text-align:center;padding:28px 16px}
+.menu{padding:4px 0;gap:0}
+.menu-item{display:flex;align-items:center;gap:14px;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:14px 16px;text-align:left;min-height:64px}
+.menu-item:last-child{border-bottom:0}
+.menu-item svg{width:24px;height:24px;flex:none;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mi-text{flex:1;min-width:0;display:flex;flex-direction:column}
+.mi-text span{font-size:.88rem;color:var(--muted)}
+.chev{font-size:1.6rem;color:var(--muted);line-height:1}
+.back{margin-left:-8px;margin-bottom:4px}
+.sd-stage{min-height:300px;display:flex;flex-direction:column;justify-content:center;align-items:stretch}
+.sd-count{font-family:var(--scripture);font-weight:600;color:var(--accent);font-size:clamp(7rem,40vw,12rem);line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.sd-wait{text-align:center;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sd-page{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 18px;display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.sd-go{font-size:1.6rem;letter-spacing:.08em;text-transform:uppercase}
+.rem-grid{display:grid;grid-template-columns:minmax(0,9.5rem) minmax(0,1fr);gap:12px}
+.rem-grid input,.rem-grid select{height:50px;min-height:0;padding-block:0}
+.f input[type="time"]{-webkit-appearance:none;appearance:none;min-width:0;width:100%;display:block;text-align:left;min-height:48px}
+.f input[type="time"]::-webkit-date-and-time-value{text-align:left}
+.nw{white-space:nowrap}
+.donate-text{font-family:var(--scripture);font-size:1.25rem;line-height:1.5;margin:0}
+.refs{margin-top:4px}
+.two-seg{grid-template-columns:1fr 1fr}
+.drillbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 16px;display:flex;flex-direction:column;gap:12px;text-align:center;min-height:200px;justify-content:center}
+.drillref{font-family:var(--scripture);font-size:2.2rem;font-weight:600;line-height:1.15;text-wrap:balance}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--brass);font-size:1.1rem}
+.answer{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.btn.go{min-height:60px;font-size:1.2rem;width:100%}
+.btn.ok-btn{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.roll .what span.dsum{display:block;color:var(--ink);font-size:.92rem;margin:2px 0}
+.refs summary{color:var(--accent);font-weight:600;font-size:.88rem;cursor:pointer;min-height:32px;display:flex;align-items:center}
+.refs p{font-size:.88rem;color:var(--muted);margin:4px 0 10px;overflow-wrap:break-word}
+.roll li:has(details){align-items:flex-start}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 2px 10px;font-size:.72rem;font-weight:600;color:var(--muted)}
+nav.tabs button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+
+.sheet{position:fixed;inset:0;z-index:40;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
+.panel{background:var(--bg);width:100%;max-width:680px;max-height:94%;overflow:auto;border-radius:18px 18px 0 0;padding-top:18px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+.panel.full{height:94%}
+label.f{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.92rem;min-width:0}
+.f input,.f select,.f textarea{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 12px;font-weight:400;font-size:1.05rem;width:100%}
+.f textarea{font-family:var(--scripture);font-size:1.2rem;line-height:1.45;resize:vertical}
+.two{display:grid;grid-template-columns:1.6fr 1fr;gap:12px}
+.note{font-size:.9rem;border-radius:10px;padding:8px 12px;background:var(--ok-soft);color:var(--ok)}
+.err{font-size:.9rem;color:var(--bad)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.seg button{border:0;background:none;border-radius:9px;min-height:40px;font-weight:600;font-size:.9rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.qverse{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 16px;line-height:2.15}
+.blank{display:inline-flex;flex-direction:column;align-items:center;vertical-align:baseline;line-height:1.3}
+.blank input{font-family:var(--scripture);font-size:1.25rem;border:0;border-bottom:2px solid var(--accent);background:var(--accent-soft);border-radius:5px 5px 0 0;padding:0 4px;text-align:center;max-width:100%}
+.blank.ok input{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.blank.bad input{border-color:var(--bad);background:var(--bad-soft);color:var(--bad);text-decoration:line-through}
+.fix{font-family:var(--ui);font-size:.8rem;font-weight:700;color:var(--ok)}
+.fix:empty{display:none}
+.result{border-radius:12px;padding:12px 14px;font-weight:600}
+.result.good{background:var(--ok-soft);color:var(--ok)}
+.result.try{background:var(--brass-soft);color:var(--brass)}
+.bank{display:flex;flex-wrap:wrap;gap:8px}
+.bank button{font-family:var(--scripture);font-size:1.1rem;min-height:40px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface)}
+.bank button:disabled{opacity:.3}
+.peek{font-family:var(--scripture);font-size:1.15rem;background:var(--brass-soft);border-radius:12px;padding:12px 14px;margin:0}
+.recite{font-family:var(--scripture);font-size:1.25rem;line-height:1.5;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface);width:100%;min-height:9em;resize:vertical}
+.diff span.miss{color:var(--bad);text-decoration:underline;text-decoration-thickness:2px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:60;max-width:calc(100% - 32px)}
+@media (max-width:420px){.two{grid-template-columns:1fr}.seg button{font-size:.82rem}}
+@media (prefers-reduced-motion:no-preference){.panel{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">Hidden Word<small>Thy word have I hid in mine heart · Ps 119:11</small></div>
+    <div class="streak" id="streak"><b>0</b><span>day streak</span></div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<nav class="tabs" aria-label="Sections"><div class="in">
+  <button data-act="tab" data-id="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Today</button>
+  <button data-act="tab" data-id="list"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>My Verses</button>
+  <button data-act="tab" data-id="library"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M6.5 17A2.5 2.5 0 0 0 4 19.5 2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Library</button>
+  <button data-act="tab" data-id="challenges"><svg viewBox="0 0 24 24"><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></svg>Challenges</button>
+  <button data-act="tab" data-id="more"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg>More</button>
+</div></nav>
+
+<div class="sheet" id="sheet" hidden><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const KEY='hiddenword.v1';
+const VERSIONS=['KJV','NKJV','ESV','NIV','NLT','NASB','CSB','AMP','NRSV','BSB','WEB','Other'];
+const LEVELS={easy:{label:'Easy',ratio:.25},medium:{label:'Medium',ratio:.5},hard:{label:'Hard',ratio:.85},recite:{label:'Recite'}};
+const MASTERY=['New','Started','Learning','Memorized'];
+
+// Built-in verses are King James Version (public domain). Users can swap in their own translation.
+const BUILTIN=[
+ ['Ephesians 6:10','Finally, my brethren, be strong in the Lord, and in the power of his might.','Strength & Courage'],
+ ['Ephesians 6:11','Put on the whole armour of God, that ye may be able to stand against the wiles of the devil.','Strength & Courage'],
+ ['Joshua 1:9','Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.','Strength & Courage'],
+ ['2 Timothy 2:3','Thou therefore endure hardness, as a good soldier of Jesus Christ.','Strength & Courage'],
+ ['Psalm 144:1','Blessed be the LORD my strength, which teacheth my hands to war, and my fingers to fight.','Strength & Courage'],
+ ['2 Corinthians 10:4','For the weapons of our warfare are not carnal, but mighty through God to the pulling down of strong holds.','Strength & Courage'],
+ ['1 Timothy 6:12','Fight the good fight of faith, lay hold on eternal life, whereunto thou art also called, and hast professed a good profession before many witnesses.','Strength & Courage'],
+ ['Isaiah 40:31','But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.','Strength & Courage'],
+ ['Hebrews 4:12','For the word of God is quick, and powerful, and sharper than any twoedged sword, piercing even to the dividing asunder of soul and spirit, and of the joints and marrow, and is a discerner of the thoughts and intents of the heart.','Strength & Courage'],
+ ['James 4:7','Submit yourselves therefore to God. Resist the devil, and he will flee from you.','Strength & Courage'],
+ ['Romans 8:37','Nay, in all these things we are more than conquerors through him that loved us.','Strength & Courage'],
+ ['2 Timothy 4:7','I have fought a good fight, I have finished my course, I have kept the faith.','Strength & Courage'],
+ ['Philippians 4:6','Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God.','Peace'],
+ ['Philippians 4:7','And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus.','Peace'],
+ ['John 14:27','Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.','Peace'],
+ ['Isaiah 26:3','Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.','Peace'],
+ ['John 16:33','These things I have spoken unto you, that in me ye might have peace. In the world ye shall have tribulation: but be of good cheer; I have overcome the world.','Peace'],
+ ['Psalm 4:8','I will both lay me down in peace, and sleep: for thou, LORD, only makest me dwell in safety.','Peace'],
+ ['Colossians 3:15','And let the peace of God rule in your hearts, to the which also ye are called in one body; and be ye thankful.','Peace'],
+ ['Matthew 11:28','Come unto me, all ye that labour and are heavy laden, and I will give you rest.','Peace'],
+ ['John 3:16','For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.','The Gospel'],
+ ['Romans 3:23','For all have sinned, and come short of the glory of God.','The Gospel'],
+ ['Romans 6:23','For the wages of sin is death; but the gift of God is eternal life through Jesus Christ our Lord.','The Gospel'],
+ ['Romans 5:8','But God commendeth his love toward us, in that, while we were yet sinners, Christ died for us.','The Gospel'],
+ ['Romans 10:9','That if thou shalt confess with thy mouth the Lord Jesus, and shalt believe in thine heart that God hath raised him from the dead, thou shalt be saved.','The Gospel'],
+ ['Ephesians 2:8','For by grace are ye saved through faith; and that not of yourselves: it is the gift of God.','The Gospel'],
+ ['2 Corinthians 5:17','Therefore if any man be in Christ, he is a new creature: old things are passed away; behold, all things are become new.','The Gospel'],
+ ['Psalm 119:11','Thy word have I hid in mine heart, that I might not sin against thee.','Trust & Guidance'],
+ ['Proverbs 3:5-6','Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.','Trust & Guidance'],
+ ['Psalm 119:105','Thy word is a lamp unto my feet, and a light unto my path.','Trust & Guidance'],
+ ['Jeremiah 29:11','For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end.','Trust & Guidance'],
+ ['Romans 8:28','And we know that all things work together for good to them that love God, to them who are the called according to his purpose.','Trust & Guidance'],
+ ['Philippians 4:13','I can do all things through Christ which strengtheneth me.','Trust & Guidance'],
+ ['Psalm 46:10','Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth.','Trust & Guidance'],
+ ['Matthew 6:33','But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you.','Trust & Guidance'],
+ ['Galatians 2:20','I am crucified with Christ: nevertheless I live; yet not I, but Christ liveth in me: and the life which I now live in the flesh I live by the faith of the Son of God, who loved me, and gave himself for me.','Trust & Guidance'],
+ ['1 John 1:9','If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness.','Trust & Guidance'],
+ ['Psalm 23:1','The LORD is my shepherd; I shall not want.','Trust & Guidance'],
+ ['Proverbs 15:1','A soft answer turneth away wrath: but grievous words stir up anger.','A to Z'],
+ ['Psalm 37:4','Delight thyself also in the LORD; and he shall give thee the desires of thine heart.','A to Z'],
+ ['James 1:17','Every good gift and every perfect gift is from above, and cometh down from the Father of lights, with whom is no variableness, neither shadow of turning.','A to Z'],
+ ['Matthew 28:19','Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost.','A to Z'],
+ ['Exodus 20:12','Honour thy father and thy mother: that thy days may be long upon the land which the LORD thy God giveth thee.','A to Z'],
+ ['Hebrews 13:8','Jesus Christ the same yesterday, and to day, and for ever.','A to Z'],
+ ['Proverbs 4:23','Keep thy heart with all diligence; for out of it are the issues of life.','A to Z'],
+ ['John 14:1','Let not your heart be troubled: ye believe in God, believe also in me.','A to Z'],
+ ['Psalm 100:1','Make a joyful noise unto the LORD, all ye lands.','A to Z'],
+ ['Hebrews 11:1','Now faith is the substance of things hoped for, the evidence of things not seen.','A to Z'],
+ ['Psalm 136:1','O give thanks unto the LORD; for he is good: for his mercy endureth for ever.','A to Z'],
+ ['1 Thessalonians 5:17','Pray without ceasing.','A to Z'],
+ ['1 Thessalonians 5:19','Quench not the Spirit.','A to Z'],
+ ['Philippians 4:4','Rejoice in the Lord alway: and again I say, Rejoice.','A to Z'],
+ ['Isaiah 55:6','Seek ye the LORD while he may be found, call ye upon him while he is near.','A to Z'],
+ ['Psalm 25:1','Unto thee, O LORD, do I lift up my soul.','A to Z'],
+ ['John 6:47','Verily, verily, I say unto you, He that believeth on me hath everlasting life.','A to Z'],
+ ['Psalm 27:14','Wait on the LORD: be of good courage, and he shall strengthen thine heart: wait, I say, on the LORD.','A to Z'],
+ ['John 3:3b','Except a man be born again, he cannot see the kingdom of God.','A to Z'],
+ ['Matthew 5:14','Ye are the light of the world. A city that is set on an hill cannot be hid.','A to Z'],
+ ['Luke 19:5b','Zacchaeus, make haste, and come down; for to day I must abide at thy house.','A to Z'],
+ ['Matthew 5:3-7','Blessed are the poor in spirit: for theirs is the kingdom of heaven. Blessed are they that mourn: for they shall be comforted. Blessed are the meek: for they shall inherit the earth. Blessed are they which do hunger and thirst after righteousness: for they shall be filled. Blessed are the merciful: for they shall obtain mercy.','Jesus’ Words'],
+ ['Matthew 5:14-16','Ye are the light of the world. A city that is set on an hill cannot be hid. Neither do men light a candle, and put it under a bushel, but on a candlestick; and it giveth light unto all that are in the house. Let your light so shine before men, that they may see your good works, and glorify your Father which is in heaven.','Jesus’ Words'],
+ ['Matthew 6:9-13','After this manner therefore pray ye: Our Father which art in heaven, Hallowed be thy name. Thy kingdom come. Thy will be done in earth, as it is in heaven. Give us this day our daily bread. And forgive us our debts, as we forgive our debtors. And lead us not into temptation, but deliver us from evil: For thine is the kingdom, and the power, and the glory, for ever. Amen.','Jesus’ Words'],
+ ['Matthew 6:31-34','Therefore take no thought, saying, What shall we eat? or, What shall we drink? or, Wherewithal shall we be clothed? For after all these things do the Gentiles seek: for your heavenly Father knoweth that ye have need of all these things. But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you. Take therefore no thought for the morrow: for the morrow shall take thought for the things of itself. Sufficient unto the day is the evil thereof.','Jesus’ Words'],
+ ['Matthew 7:7-8','Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you: For every one that asketh receiveth; and he that seeketh findeth; and to him that knocketh it shall be opened.','Jesus’ Words'],
+ ['Matthew 11:28-30','Come unto me, all ye that labour and are heavy laden, and I will give you rest. Take my yoke upon you, and learn of me; for I am meek and lowly in heart: and ye shall find rest unto your souls. For my yoke is easy, and my burden is light.','Jesus’ Words'],
+ ['Luke 9:23','And he said to them all, If any man will come after me, let him deny himself, and take up his cross daily, and follow me.','Jesus’ Words'],
+ ['Matthew 22:37-39','Jesus said unto him, Thou shalt love the Lord thy God with all thy heart, and with all thy soul, and with all thy mind. This is the first and great commandment. And the second is like unto it, Thou shalt love thy neighbour as thyself.','Jesus’ Words'],
+ ['John 11:25-26','Jesus said unto her, I am the resurrection, and the life: he that believeth in me, though he were dead, yet shall he live: And whosoever liveth and believeth in me shall never die. Believest thou this?','Jesus’ Words'],
+ ['John 13:34-35','A new commandment I give unto you, That ye love one another; as I have loved you, that ye also love one another. By this shall all men know that ye are my disciples, if ye have love one to another.','Jesus’ Words'],
+ ['John 14:1-3','Let not your heart be troubled: ye believe in God, believe also in me. In my Father’s house are many mansions: if it were not so, I would have told you. I go to prepare a place for you. And if I go and prepare a place for you, I will come again, and receive you unto myself; that where I am, there ye may be also.','Jesus’ Words'],
+ ['Matthew 28:18-20','And Jesus came and spake unto them, saying, All power is given unto me in heaven and in earth. Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost: Teaching them to observe all things whatsoever I have commanded you: and, lo, I am with you alway, even unto the end of the world. Amen.','Jesus’ Words'],
+ ['2 Timothy 3:16','All scripture is given by inspiration of God, and is profitable for doctrine, for reproof, for correction, for instruction in righteousness.','Doctrine'],
+ ['Deuteronomy 6:4','Hear, O Israel: The LORD our God is one LORD.','Doctrine'],
+ ['John 1:1','In the beginning was the Word, and the Word was with God, and the Word was God.','Doctrine'],
+ ['John 14:26','But the Comforter, which is the Holy Ghost, whom the Father will send in my name, he shall teach you all things, and bring all things to your remembrance, whatsoever I have said unto you.','Doctrine'],
+ ['Genesis 1:27','So God created man in his own image, in the image of God created he him; male and female created he them.','Doctrine'],
+ ['Acts 4:12','Neither is there salvation in any other: for there is none other name under heaven given among men, whereby we must be saved.','Doctrine'],
+ ['John 10:28','And I give unto them eternal life; and they shall never perish, neither shall any man pluck them out of my hand.','Doctrine'],
+ ['Matthew 16:18','And I say also unto thee, That thou art Peter, and upon this rock I will build my church; and the gates of hell shall not prevail against it.','Doctrine'],
+ ['Romans 6:4','Therefore we are buried with him by baptism into death: that like as Christ was raised up from the dead by the glory of the Father, even so we also should walk in newness of life.','Doctrine'],
+ ['Acts 20:7','And upon the first day of the week, when the disciples came together to break bread, Paul preached unto them, ready to depart on the morrow; and continued his speech until midnight.','Doctrine'],
+ ['Luke 12:32','Fear not, little flock; for it is your Father’s good pleasure to give you the kingdom.','Doctrine'],
+ ['Acts 1:11','Which also said, Ye men of Galilee, why stand ye gazing up into heaven? this same Jesus, which is taken up from you into heaven, shall so come in like manner as ye have seen him go into heaven.','Doctrine'],
+ ['Acts 1:8','But ye shall receive power, after that the Holy Ghost is come upon you: and ye shall be witnesses unto me both in Jerusalem, and in all Judaea, and in Samaria, and unto the uttermost part of the earth.','Doctrine'],
+ ['2 Timothy 2:15','Study to shew thyself approved unto God, a workman that needeth not to be ashamed, rightly dividing the word of truth.','Doctrine'],
+ ['Malachi 3:10','Bring ye all the tithes into the storehouse, that there may be meat in mine house, and prove me now herewith, saith the LORD of hosts, if I will not open you the windows of heaven, and pour you out a blessing, that there shall not be room enough to receive it.','Doctrine'],
+ ['Ephesians 4:3','Endeavouring to keep the unity of the Spirit in the bond of peace.','Doctrine'],
+ ['Micah 6:8','He hath shewed thee, O man, what is good; and what doth the LORD require of thee, but to do justly, and to love mercy, and to walk humbly with thy God?','Doctrine'],
+ ['Romans 12:18','If it be possible, as much as lieth in you, live peaceably with all men.','Doctrine'],
+ ['Galatians 5:1','Stand fast therefore in the liberty wherewith Christ hath made us free, and be not entangled again with the yoke of bondage.','Doctrine'],
+ ['Joshua 24:15','And if it seem evil unto you to serve the LORD, choose you this day whom ye will serve; whether the gods which your fathers served that were on the other side of the flood, or the gods of the Amorites, in whose land ye dwell: but as for me and my house, we will serve the LORD.','Doctrine'],
+ ['Romans 8:38-39','For I am persuaded, that neither death, nor life, nor angels, nor principalities, nor powers, nor things present, nor things to come, Nor height, nor depth, nor any other creature, shall be able to separate us from the love of God, which is in Christ Jesus our Lord.','Scripture Songs'],
+ ['Jeremiah 17:14','Heal me, O LORD, and I shall be healed; save me, and I shall be saved: for thou art my praise.','Scripture Songs'],
+ ['Romans 8:1-2','There is therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit. For the law of the Spirit of life in Christ Jesus hath made me free from the law of sin and death.','Scripture Songs'],
+ ['Proverbs 3:24-26','When thou liest down, thou shalt not be afraid: yea, thou shalt lie down, and thy sleep shall be sweet. Be not afraid of sudden fear, neither of the desolation of the wicked, when it cometh. For the LORD shall be thy confidence, and shall keep thy foot from being taken.','Scripture Songs'],
+ ['Ephesians 6:11-12','Put on the whole armour of God, that ye may be able to stand against the wiles of the devil. For we wrestle not against flesh and blood, but against principalities, against powers, against the rulers of the darkness of this world, against spiritual wickedness in high places.','Scripture Songs'],
+ ['2 Corinthians 10:3-4','For though we walk in the flesh, we do not war after the flesh: For the weapons of our warfare are not carnal, but mighty through God to the pulling down of strong holds.','Scripture Songs'],
+ ['Ephesians 6:14-17','Stand therefore, having your loins girt about with truth, and having on the breastplate of righteousness; And your feet shod with the preparation of the gospel of peace; Above all, taking the shield of faith, wherewith ye shall be able to quench all the fiery darts of the wicked. And take the helmet of salvation, and the sword of the Spirit, which is the word of God.','Scripture Songs'],
+ ['1 Peter 5:8-9','Be sober, be vigilant; because your adversary the devil, as a roaring lion, walketh about, seeking whom he may devour: Whom resist stedfast in the faith, knowing that the same afflictions are accomplished in your brethren that are in the world.','Scripture Songs'],
+ ['Isaiah 1:18','Come now, and let us reason together, saith the LORD: though your sins be as scarlet, they shall be as white as snow; though they be red like crimson, they shall be as wool.','Scripture Songs'],
+ ['Psalm 51:10-12','Create in me a clean heart, O God; and renew a right spirit within me. Cast me not away from thy presence; and take not thy holy spirit from me. Restore unto me the joy of thy salvation; and uphold me with thy free spirit.','Scripture Songs'],
+ ['Isaiah 30:18-19','And therefore will the LORD wait, that he may be gracious unto you, and therefore will he be exalted, that he may have mercy upon you: for the LORD is a God of judgment: blessed are all they that wait for him. For the people shall dwell in Zion at Jerusalem: thou shalt weep no more: he will be very gracious unto thee at the voice of thy cry; when he shall hear it, he will answer thee.','Scripture Songs'],
+ ['Old Testament: The Law','Genesis, Exodus, Leviticus, Numbers, Deuteronomy.','Books of the Bible','Books'],
+ ['Old Testament: History','Joshua, Judges, Ruth, 1 Samuel, 2 Samuel, 1 Kings, 2 Kings, 1 Chronicles, 2 Chronicles, Ezra, Nehemiah, Esther.','Books of the Bible','Books'],
+ ['Old Testament: Poetry and Wisdom','Job, Psalms, Proverbs, Ecclesiastes, Song of Solomon.','Books of the Bible','Books'],
+ ['Old Testament: Major Prophets','Isaiah, Jeremiah, Lamentations, Ezekiel, Daniel.','Books of the Bible','Books'],
+ ['Old Testament: Minor Prophets','Hosea, Joel, Amos, Obadiah, Jonah, Micah, Nahum, Habakkuk, Zephaniah, Haggai, Zechariah, Malachi.','Books of the Bible','Books'],
+ ['New Testament: Gospels and Acts','Matthew, Mark, Luke, John, Acts.','Books of the Bible','Books'],
+ ['New Testament: Paul’s Letters','Romans, 1 Corinthians, 2 Corinthians, Galatians, Ephesians, Philippians, Colossians, 1 Thessalonians, 2 Thessalonians, 1 Timothy, 2 Timothy, Titus, Philemon.','Books of the Bible','Books'],
+ ['New Testament: General Letters and Revelation','Hebrews, James, 1 Peter, 2 Peter, 1 John, 2 John, 3 John, Jude, Revelation.','Books of the Bible','Books']
+].map(([ref,text,topic,version])=>({ref,text,topic,version}));
+
+const SONGS_REFS=['Romans 8:38-39','John 14:1-3','Jeremiah 17:14','Romans 8:1-2','Proverbs 3:24-26','Ephesians 6:11-12','2 Corinthians 10:3-4','Ephesians 6:14-17','1 Peter 5:8-9','Isaiah 1:18','Psalm 51:10-12','Isaiah 30:18-19'];
+const CHALLENGES=[
+ {id:'warrior',name:'12 Month Warrior',length:'12 months',days:365,blurb:'One verse a month on strength, courage and the armor of God. A new verse opens about every 30 days.',
+  refs:['Ephesians 6:10','Ephesians 6:11','Joshua 1:9','2 Timothy 2:3','Psalm 144:1','2 Corinthians 10:4','1 Timothy 6:12','Isaiah 40:31','Hebrews 4:12','James 4:7','Romans 8:37','2 Timothy 4:7']},
+ {id:'peace',name:'1 Month Peace',length:'30 days',days:30,blurb:'Eight verses on God’s peace, about two a week. A new verse opens every 4 days.',
+  refs:['Philippians 4:6','Philippians 4:7','John 14:27','Isaiah 26:3','John 16:33','Psalm 4:8','Colossians 3:15','Matthew 11:28']},
+ {id:'romans',name:'7 Day Romans Road',length:'7 days',days:7,blurb:'One verse a day walking through the gospel, from sin to salvation to new life.',
+  refs:['John 3:16','Romans 3:23','Romans 6:23','Romans 5:8','Romans 10:9','Ephesians 2:8','2 Corinthians 5:17']},
+ {id:'alphabet',name:'A to Z Alphabet',length:'26 weeks',days:182,letters:true,blurb:'26 verses, one for each letter, A through Z. A new letter opens each week. X is for eXcept and Z is for Zacchaeus, taken from the middle of their verses.',
+  refs:['Proverbs 15:1','Psalm 46:10','Matthew 11:28','Psalm 37:4','James 1:17','John 3:16','Matthew 28:19','Exodus 20:12','Philippians 4:13','Hebrews 13:8','Proverbs 4:23','John 14:1','Psalm 100:1','Hebrews 11:1','Psalm 136:1','1 Thessalonians 5:17','1 Thessalonians 5:19','Philippians 4:4','Isaiah 55:6','Psalm 23:1','Psalm 25:1','John 6:47','Psalm 27:14','John 3:3b','Matthew 5:14','Luke 19:5b']},
+ {id:'jesus',name:'Jesus’ Words',length:'12 months',days:365,unit:'Passage',blurb:'Twelve passages in Jesus’ own words, one a month, never more than 5 verses at a time: the Beatitudes, the Lord’s Prayer, the Great Commandment, the Great Commission and more.',
+  refs:['Matthew 5:3-7','Matthew 5:14-16','Matthew 6:9-13','Matthew 6:31-34','Matthew 7:7-8','Matthew 11:28-30','Luke 9:23','Matthew 22:37-39','John 11:25-26','John 13:34-35','John 14:1-3','Matthew 28:18-20']},
+ {id:'bfm',name:'Doctrine',length:'20 weeks',days:140,unit:'Doctrine',doctrines:true,blurb:'20 core doctrines of the Christian faith, one a week: the Scriptures, God the Father, Son and Holy Spirit, salvation, the church, last things and more. Memorize one key verse for each, with a full list of supporting verses to read.',
+  refs:['2 Timothy 3:16','Deuteronomy 6:4','John 1:1','John 14:26','Genesis 1:27','Acts 4:12','John 10:28','Matthew 16:18','Romans 6:4','Acts 20:7','Luke 12:32','Acts 1:11','Acts 1:8','2 Timothy 2:15','Malachi 3:10','Ephesians 4:3','Micah 6:8','Romans 12:18','Galatians 5:1','Joshua 24:15']},
+ {id:'books',name:'Books of the Bible',length:'8 weeks',days:56,unit:'Group',blurb:'Learn all 66 books in order, one group a week: the Law, History, Poetry, the Major and Minor Prophets, the Gospels, Paul’s letters and the General letters. Quizzes blank out book names.',
+  refs:['Old Testament: The Law','Old Testament: History','Old Testament: Poetry and Wisdom','Old Testament: Major Prophets','Old Testament: Minor Prophets','New Testament: Gospels and Acts','New Testament: Paul’s Letters','New Testament: General Letters and Revelation']},
+ {id:'songs',name:'Scripture Songs',length:'12 weeks',days:84,music:true,blurb:'Twelve passages from your Scripture Songs playlist, one a week: Romans 8, the armor of God, the clean heart of Psalm 51 and more. Listen to the song, then quiz yourself on the words.',
+  refs:SONGS_REFS}
+];
+
+// Real recordings on the user's Amazon Music playlist, with the version each one sings.
+const SONGS=[
+ {ref:'Romans 8:38-39',title:'Nothing Can Separate Us',artist:"Integrity's Hosanna! Music",tr:''},
+ {ref:'John 14:1-3',title:'Let Not Your Heart Be Troubled',artist:"Integrity's Hosanna! Music",tr:''},
+ {ref:'Jeremiah 17:14',title:'Heal Me, O Lord',artist:"Integrity's Hosanna! Music",tr:'NIV'},
+ {ref:'Romans 8:1-2',title:'No Condemnation',artist:"Integrity's Hosanna! Music",tr:'KJV'},
+ {ref:'Proverbs 3:24-26',title:'When You Lie Down',artist:"Integrity's Hosanna! Music",tr:'NKJV'},
+ {ref:'Ephesians 6:11-12',title:'Put On the Full Armor',artist:'Scripture Memory Songs',tr:'NASB'},
+ {ref:'2 Corinthians 10:3-4',title:'The Weapons We Fight With',artist:'Scripture Memory Songs',tr:'NIV'},
+ {ref:'Ephesians 6:14-17',title:'Stand',artist:'Scripture Memory Songs',tr:'NKJV'},
+ {ref:'1 Peter 5:8-9',title:'Resist Him',artist:'Scripture Memory Songs',tr:'NKJV'},
+ {ref:'Isaiah 1:18',title:'Come Now, Let Us Reason Together',artist:"Integrity's Hosanna! Music",tr:'NIV'},
+ {ref:'Psalm 51:10-12',title:'Create In Me a Clean Heart',artist:'Scripture Memory Songs',tr:'NKJV',note:'The song also sings verse 15.'},
+ {ref:'Isaiah 30:18-19',title:'The Lord Longs to Be Gracious',artist:'Scripture Memory Songs',tr:'NIV'}
+];
+const songFor=ref=>SONGS.find(s=>s.ref===ref);
+const DEFAULT_PL='https://music.amazon.com/user-playlists/977312522f2644f0b3bcd8a70ab895aasune';
+
+// Core doctrines: a memory verse for each and its supporting references.
+const DOCTRINES=[
+ {art:'I',title:'The Scriptures',key:'2 Timothy 3:16',sum:'The Bible is God’s inspired, true and trustworthy Word, and Jesus Christ is its focus.',refs:'Exodus 24:4; Deuteronomy 4:1-2; 17:19; Joshua 8:34; Psalms 19:7-10; 119:11,89,105,140; Isaiah 34:16; 40:8; Jeremiah 15:16; 36:1-32; Matthew 5:17-18; 22:29; Luke 21:33; 24:44-46; John 5:39; 16:13-15; 17:17; Acts 2:16ff.; 17:11; Romans 15:4; 16:25-26; 2 Timothy 3:15-17; Hebrews 1:1-2; 4:12; 1 Peter 1:25; 2 Peter 1:19-21'},
+ {art:'II A',title:'God the Father',key:'Deuteronomy 6:4',sum:'There is one true God, who reigns over all as a loving Father.',refs:'Genesis 1:1; 2:7; Exodus 3:14; 6:2-3; 15:11ff.; 20:1ff.; Leviticus 22:2; Deuteronomy 6:4; 32:6; 1 Chronicles 29:10; Psalm 19:1-3; Isaiah 43:3,15; 64:8; Jeremiah 10:10; 17:13; Matthew 6:9ff.; 7:11; 23:9; 28:19; Mark 1:9-11; John 4:24; 5:26; 14:6-13; 17:1-8; Acts 1:7; Romans 8:14-15; 1 Corinthians 8:6; Galatians 4:6; Ephesians 4:6; Colossians 1:15; 1 Timothy 1:17; Hebrews 11:6; 12:9; 1 Peter 1:17; 1 John 5:7'},
+ {art:'II B',title:'God the Son',key:'John 1:1',sum:'Jesus is the eternal Son of God, born of a virgin, who died for sin, rose again and will return.',refs:'Genesis 18:1ff.; Psalms 2:7ff.; 110:1ff.; Isaiah 7:14; 53:1-12; Matthew 1:18-23; 3:17; 8:29; 11:27; 14:33; 16:16,27; 17:5; 27; 28:1-6,19; Mark 1:1; 3:11; Luke 1:35; 4:41; 22:70; 24:46; John 1:1-18,29; 10:30,38; 11:25-27; 12:44-50; 14:7-11; 16:15-16,28; 17:1-5,21-22; 20:1-20,28; Acts 1:9; 2:22-24; 7:55-56; 9:4-5,20; Romans 1:3-4; 3:23-26; 5:6-21; 8:1-3,34; 10:4; 1 Corinthians 1:30; 2:2; 8:6; 15:1-8,24-28; 2 Corinthians 5:19-21; 8:9; Galatians 4:4-5; Ephesians 1:20; 3:11; 4:7-10; Philippians 2:5-11; Colossians 1:13-22; 2:9; 1 Thessalonians 4:14-18; 1 Timothy 2:5-6; 3:16; Titus 2:13-14; Hebrews 1:1-3; 4:14-15; 7:14-28; 9:12-15,24-28; 12:2; 13:8; 1 Peter 2:21-25; 3:22; 1 John 1:7-9; 3:2; 4:14-15; 5:9; 2 John 7-9; Revelation 1:13-16; 5:9-14; 12:10-11; 13:8; 19:16'},
+ {art:'II C',title:'God the Holy Spirit',key:'John 14:26',sum:'The Holy Spirit is God, who convicts of sin, gives new life, lives in believers and seals them.',refs:'Genesis 1:2; Judges 14:6; Job 26:13; Psalms 51:11; 139:7ff.; Isaiah 61:1-3; Joel 2:28-32; Matthew 1:18; 3:16; 4:1; 12:28-32; 28:19; Mark 1:10,12; Luke 1:35; 4:1,18-19; 11:13; 12:12; 24:49; John 4:24; 14:16-17,26; 15:26; 16:7-14; Acts 1:8; 2:1-4,38; 4:31; 5:3; 6:3; 7:55; 8:17,39; 10:44; 13:2; 15:28; 16:6; 19:1-6; Romans 8:9-11,14-16,26-27; 1 Corinthians 2:10-14; 3:16; 12:3-11,13; Galatians 4:6; Ephesians 1:13-14; 4:30; 5:18; 1 Thessalonians 5:19; 1 Timothy 3:16; 4:1; 2 Timothy 1:14; 3:16; Hebrews 9:8,14; 2 Peter 1:21; 1 John 4:13; 5:6-7; Revelation 1:10; 22:17'},
+ {art:'III',title:'Man',key:'Genesis 1:27',sum:'People are made in God’s image, fell into sin, and can be restored only by God’s grace.',refs:'Genesis 1:26-30; 2:5,7,18-22; 3; 9:6; Psalms 1; 8:3-6; 32:1-5; 51:5; Isaiah 6:5; Jeremiah 17:5; Matthew 16:26; Acts 17:26-31; Romans 1:19-32; 3:10-18,23; 5:6,12,19; 6:6; 7:14-25; 8:14-18,29; 1 Corinthians 1:21-31; 15:19,21-22; Ephesians 2:1-22; Colossians 1:21-22; 3:9-11'},
+ {art:'IV',title:'Salvation',key:'Acts 4:12',sum:'Salvation is God’s free gift through faith in Jesus Christ alone.',refs:'Genesis 3:15; Exodus 3:14-17; 6:2-8; Matthew 1:21; 4:17; 16:21-26; 27:22-28:6; Luke 1:68-69; 2:28-32; John 1:11-14,29; 3:3-21,36; 5:24; 10:9,28-29; 15:1-16; 17:17; Acts 2:21; 4:12; 15:11; 16:30-31; 17:30-31; 20:32; Romans 1:16-18; 2:4; 3:23-25; 4:3ff.; 5:8-10; 6:1-23; 8:1-18,29-39; 10:9-10,13; 13:11-14; 1 Corinthians 1:18,30; 6:19-20; 15:10; 2 Corinthians 5:17-20; Galatians 2:20; 3:13; 5:22-25; 6:15; Ephesians 1:7; 2:8-22; 4:11-16; Philippians 2:12-13; Colossians 1:9-22; 3:1ff.; 1 Thessalonians 5:23-24; 2 Timothy 1:12; Titus 2:11-14; Hebrews 2:1-3; 5:8-9; 9:24-28; 11:1-12:8,14; James 2:14-26; 1 Peter 1:2-23; 1 John 1:6-2:11; Revelation 3:20; 21:1-22:5'},
+ {art:'V',title:'God’s Purpose of Grace',key:'John 10:28',sum:'God graciously chooses, saves and keeps His people, and true believers endure to the end.',refs:'Genesis 12:1-3; Exodus 19:5-8; 1 Samuel 8:4-7,19-22; Isaiah 5:1-7; Jeremiah 31:31ff.; Matthew 16:18-19; 21:28-45; 24:22,31; 25:34; Luke 1:68-79; 2:29-32; 19:41-44; 24:44-48; John 1:12-14; 3:16; 5:24; 6:44-45,65; 10:27-29; 15:16; 17:6,12,17-18; Acts 20:32; Romans 5:9-10; 8:28-39; 10:12-15; 11:5-7,26-36; 1 Corinthians 1:1-2; 15:24-28; Ephesians 1:4-23; 2:1-10; 3:1-11; Colossians 1:12-14; 2 Thessalonians 2:13-14; 2 Timothy 1:12; 2:10,19; Hebrews 11:39-12:2; James 1:12; 1 Peter 1:2-5,13; 2:4-10; 1 John 1:7-9; 2:19; 3:2'},
+ {art:'VI',title:'The Church',key:'Matthew 16:18',sum:'A local church is a body of baptized believers, governed under Christ, that worships, serves and shares the gospel.',refs:'Matthew 16:15-19; 18:15-20; Acts 2:41-42,47; 5:11-14; 6:3-6; 13:1-3; 14:23,27; 15:1-30; 16:5; 20:28; Romans 1:7; 1 Corinthians 1:2; 3:16; 5:4-5; 7:17; 9:13-14; 12; Ephesians 1:22-23; 2:19-22; 3:8-11,21; 5:22-32; Philippians 1:1; Colossians 1:18; 1 Timothy 2:9-14; 3:1-15; 4:14; Hebrews 11:39-40; 1 Peter 5:1-4; Revelation 2-3; 21:2-3'},
+ {art:'VII',title:'Baptism and the Lord’s Supper',key:'Romans 6:4',sum:'Baptism by immersion pictures new life in Christ, and the Lord’s Supper remembers His death.',refs:'Matthew 3:13-17; 26:26-30; 28:19-20; Mark 1:9-11; 14:22-26; Luke 3:21-22; 22:19-20; John 3:23; Acts 2:41-42; 8:35-39; 16:30-33; 20:7; Romans 6:3-5; 1 Corinthians 10:16,21; 11:23-29; Colossians 2:12'},
+ {art:'VIII',title:'The Lord’s Day',key:'Acts 20:7',sum:'The first day of the week is the Lord’s Day, set apart for worship and spiritual rest.',refs:'Exodus 20:8-11; Matthew 12:1-12; 28:1ff.; Mark 2:27-28; 16:1-7; Luke 24:1-3,33-36; John 4:21-24; 20:1,19-28; Acts 20:7; Romans 14:5-10; 1 Corinthians 16:1-2; Colossians 2:16; 3:16; Revelation 1:10'},
+ {art:'IX',title:'The Kingdom',key:'Luke 12:32',sum:'God reigns over all, and Christians pray and work for His kingdom to come.',refs:'Genesis 1:1; Isaiah 9:6-7; Jeremiah 23:5-6; Matthew 3:2; 4:8-10,23; 12:25-28; 13:1-52; 25:31-46; 26:29; Mark 1:14-15; 9:1; Luke 4:43; 8:1; 9:2; 12:31-32; 17:20-21; 23:42; John 3:3; 18:36; Acts 1:6-7; 17:22-31; Romans 5:17; 8:19; 1 Corinthians 15:24-28; Colossians 1:13; Hebrews 11:10,16; 12:28; 1 Peter 2:4-10; 4:13; Revelation 1:6,9; 5:10; 11:15; 21-22'},
+ {art:'X',title:'Last Things',key:'Acts 1:11',sum:'Jesus will return personally and visibly; the dead will be raised and all will be judged.',refs:'Isaiah 2:4; 11:9; Matthew 16:27; 18:8-9; 19:28; 24:27,30,36,44; 25:31-46; 26:64; Mark 8:38; 9:43-48; Luke 12:40,48; 16:19-26; 17:22-37; 21:27-28; John 14:1-3; Acts 1:11; 17:31; Romans 14:10; 1 Corinthians 4:5; 15:24-28,35-58; 2 Corinthians 5:10; Philippians 3:20-21; Colossians 1:5; 3:4; 1 Thessalonians 4:14-18; 5:1ff.; 2 Thessalonians 1:7ff.; 2; 1 Timothy 6:14; 2 Timothy 4:1,8; Titus 2:13; Hebrews 9:27-28; James 5:8; 2 Peter 3:7ff.; 1 John 2:28; 3:2; Jude 14; Revelation 1:18; 3:11; 20:1-22:13'},
+ {art:'XI',title:'Evangelism and Missions',key:'Acts 1:8',sum:'Every Christian and every church is called to make disciples of all nations.',refs:'Genesis 12:1-3; Exodus 19:5-6; Isaiah 6:1-8; Matthew 9:37-38; 10:5-15; 13:18-30,37-43; 16:19; 22:9-10; 24:14; 28:18-20; Luke 10:1-18; 24:46-53; John 14:11-12; 15:7-8,16; 17:15; 20:21; Acts 1:8; 2; 8:26-40; 10:42-48; 13:2-3; Romans 10:13-15; Ephesians 3:1-11; 1 Thessalonians 1:8; 2 Timothy 4:5; Hebrews 2:1-3; 11:39-12:2; 1 Peter 2:4-10; Revelation 22:17'},
+ {art:'XII',title:'Education',key:'2 Timothy 2:15',sum:'Christianity values learning, and Christian education serves the faith and the church.',refs:'Deuteronomy 4:1,5,9,14; 6:1-10; 31:12-13; Nehemiah 8:1-8; Job 28:28; Psalms 19:7ff.; 119:11; Proverbs 3:13ff.; 4:1-10; 8:1-7,11; 15:14; Ecclesiastes 7:19; Matthew 5:2; 7:24ff.; 28:19-20; Luke 2:40; 1 Corinthians 1:18-31; Ephesians 4:11-16; Philippians 4:8; Colossians 2:3,8-9; 1 Timothy 1:3-7; 2 Timothy 2:15; 3:14-17; Hebrews 5:12-6:3; James 1:5; 3:17'},
+ {art:'XIII',title:'Stewardship',key:'Malachi 3:10',sum:'Everything belongs to God, and believers give their time, talents and money cheerfully.',refs:'Genesis 14:20; Leviticus 27:30-32; Deuteronomy 8:18; Malachi 3:8-12; Matthew 6:1-4,19-21; 19:21; 23:23; 25:14-29; Luke 12:16-21,42; 16:1-13; Acts 2:44-47; 5:1-11; 17:24-25; 20:35; Romans 6:6-22; 12:1-2; 1 Corinthians 4:1-2; 6:19-20; 12; 16:1-4; 2 Corinthians 8-9; 12:15; Philippians 4:10-19; 1 Peter 1:18-19'},
+ {art:'XIV',title:'Cooperation',key:'Ephesians 4:3',sum:'Churches work together to reach the world for Christ.',refs:'Exodus 17:12; 18:17ff.; Judges 7:21; Ezra 1:3-4; 2:68-69; 5:14-15; Nehemiah 4; 8:1-5; Matthew 10:5-15; 20:1-16; 22:1-10; 28:19-20; Mark 2:3; Luke 10:1ff.; Acts 1:13-14; 2:1ff.; 4:31-37; 13:2-3; 15:1-35; 1 Corinthians 1:10-17; 3:5-15; 12; 2 Corinthians 8-9; Galatians 1:6-10; Ephesians 4:1-16; Philippians 1:15-18'},
+ {art:'XV',title:'The Christian and the Social Order',key:'Micah 6:8',sum:'Christians apply Christ’s teaching to every part of life and society.',refs:'Exodus 20:3-17; Leviticus 6:2-5; Deuteronomy 10:12; 27:17; Psalm 101:5; Micah 6:8; Zechariah 8:16; Matthew 5:13-16,43-48; 22:36-40; 25:35; Mark 1:29-34; 2:3ff.; 10:21; Luke 4:18-21; 10:27-37; 20:25; John 15:12; 17:15; Romans 12-14; 1 Corinthians 5:9-10; 6:1-7; 7:20-24; 10:23-11:1; Galatians 3:26-28; Ephesians 6:5-9; Colossians 3:12-17; 1 Thessalonians 3:12; Philemon; James 1:27; 2:8'},
+ {art:'XVI',title:'Peace and War',key:'Romans 12:18',sum:'Christians are to seek peace with all people.',refs:'Isaiah 2:4; Matthew 5:9,38-48; 6:33; 26:52; Luke 22:36,38; Romans 12:18-19; 13:1-7; 14:19; Hebrews 12:14; James 4:1-2'},
+ {art:'XVII',title:'Religious Liberty',key:'Galatians 5:1',sum:'God alone is Lord of the conscience, and church and state should be separate.',refs:'Genesis 1:27; 2:7; Matthew 6:6-7,24; 16:26; 22:21; John 8:36; Acts 4:19-20; Romans 6:1-2; 13:1-7; Galatians 5:1,13; Philippians 3:20; 1 Timothy 2:1-2; James 4:12; 1 Peter 2:12-17; 3:11-17; 4:12-19'},
+ {art:'XVIII',title:'The Family',key:'Joshua 24:15',sum:'God ordained the family, marriage between one man and one woman, and children as a blessing.',refs:'Genesis 1:26-28; 2:15-25; 3:1-20; Exodus 20:12; Deuteronomy 6:4-9; Joshua 24:15; 1 Samuel 1:26-28; Psalms 51:5; 78:1-8; 127; 128; 139:13-16; Proverbs 1:8; 5:15-20; 6:20-22; 12:4; 13:24; 14:1; 17:6; 18:22; 22:6,15; 23:13-14; 24:3; 29:15,17; 31:10-31; Ecclesiastes 4:9-12; 9:9; Malachi 2:14-16; Matthew 5:31-32; 18:2-5; 19:3-9; Mark 10:6-12; Romans 1:18-32; 1 Corinthians 7:1-16; Ephesians 5:21-33; 6:1-4; Colossians 3:18-21; 1 Timothy 5:8,14; 2 Timothy 1:3-5; Titus 2:3-5; Hebrews 13:4; 1 Peter 3:1-7'}
+];
+const docRefs=d=>`<details class="refs"><summary>Supporting verses (${d.refs.split(';').length})</summary><p>${esc(d.refs)}</p><a class="btn small" href="https://www.biblegateway.com/passage/?search=${encodeURIComponent(d.refs.replace(/ff\./g,''))}&version=${encodeURIComponent((S.version&&S.version!=='Other')?S.version:'KJV')}" target="_blank" rel="noopener">Read them in BibleGateway</a></details>`;
+const amzUrl=s=>'https://music.amazon.com/search/'+encodeURIComponent(s.title+' '+s.artist);
+const listenBtn=(ref,cls)=>{const s=songFor(ref);return s?`<a class="btn ${cls||''}" href="${amzUrl(s)}" target="_blank" rel="noopener">♪ Listen</a>`:''};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10);
+const refKey=r=>String(r).toLowerCase().replace(/[\s.]/g,'').replace(/[–—]/g,'-');
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function dayNum(s){const [y,m,d]=s.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5)}
+function dstr(n){return new Date(n*864e5).toISOString().slice(0,10)}
+function niceDate(n){const [y,m,d]=dstr(n).split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{month:'short',day:'numeric'})}
+const builtin=ref=>BUILTIN.find(b=>refKey(b.ref)===refKey(ref));
+
+let S=load();
+function load(){
+  let d=null;
+  try{d=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  if(!d||!Array.isArray(d.verses)){
+    d={version:'KJV',verses:[],challenges:{},days:[],tab:'today'};
+    ['Psalm 119:11','Proverbs 3:5-6'].forEach(r=>{const b=builtin(r);d.verses.push(mkVerse(b.ref,b.text,'KJV','builtin'))});
+  }
+  d.challenges=d.challenges||{};d.days=d.days||[];
+  return d;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function mkVerse(ref,text,version,src){return {id:uid(),ref,text,version,src,mastery:0,best:{},added:today()}}
+const findVerse=ref=>S.verses.find(v=>refKey(v.ref)===refKey(ref));
+function ensureVerse(ref){let v=findVerse(ref);if(!v){const b=builtin(ref);v=mkVerse(b.ref,b.text,b.version||'KJV','builtin');S.verses.push(v);save()}return v}
+
+function streak(){const set=new Set(S.days);let d=dayNum(today());if(!set.has(dstr(d)))d--;let n=0;while(set.has(dstr(d))){n++;d--}return n}
+function markDay(){const t=today();if(!S.days.includes(t)){S.days.push(t);S.days=S.days.slice(-400)}}
+
+function chInfo(c){
+  const st=S.challenges[c.id];if(!st)return null;
+  const el=dayNum(today())-dayNum(st.start),n=c.refs.length;
+  const unlocked=Math.max(1,Math.min(n,Math.floor(el*n/c.days)+1));
+  const verses=c.refs.map(findVerse);
+  const done=verses.map(v=>!!(v&&v.mastery>=3));
+  const mastered=done.filter(Boolean).length;
+  let cur=unlocked-1;for(let i=0;i<unlocked;i++){if(!done[i]){cur=i;break}}
+  const opens=i=>dayNum(st.start)+Math.ceil(i*c.days/n);
+  return {el,n,unlocked,verses,done,mastered,cur,opens,complete:mastered===n};
+}
+
+/* ---------- views ---------- */
+function dots(v){const m=v.mastery||0;return `<span class="dots ${m>=3?'done':''}">${[1,2,3].map(i=>`<i class="${m>=i?'on':''}"></i>`).join('')}${MASTERY[m]}</span>`}
+function verseCard(v){
+  return `<article class="card">
+    <div class="vhead"><span class="ref">${esc(v.ref)}</span><span class="tag">${esc(v.version)}</span>${dots(v)}</div>
+    <p class="verse clamp">${esc(v.text)}</p>
+    <div class="row"><button class="btn primary small" data-act="practice" data-id="${v.id}">Practice</button><button class="btn small" data-act="edit" data-id="${v.id}">Edit</button></div>
+  </article>`;
+}
+
+function viewToday(){
+  const date=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+  const active=CHALLENGES.filter(c=>S.challenges[c.id]);
+  const memN=S.verses.filter(v=>v.mastery>=3).length;
+  let h=`<div class="stack"><div><div class="eyebrow">${esc(date)}</div><h2>Today’s verses</h2></div>
+  <article class="card"><div class="row between"><div><h3>Memory Drill</h3><p class="hint">${memN?`Random draws from your ${memN} memorized verse${memN===1?'':'s'}.`:'Memorize a verse to unlock the drill.'}</p></div><button class="btn primary" data-act="drill-open">Start drill</button></div></article>`;
+  const shown=new Set();
+  active.forEach(c=>{
+    const I=chInfo(c);const ref=c.refs[I.cur];const v=I.verses[I.cur]||{...builtin(ref),version:builtin(ref).version||'KJV',mastery:0};
+    if(v.id)shown.add(v.id);
+    const next=I.unlocked<I.n?`${c.unit||'Verse'} ${I.unlocked+1} opens ${niceDate(I.opens(I.unlocked))}.`:'All verses are open.';
+    h+=`<article class="card feature">
+      <div class="row between"><span class="eyebrow">${esc(c.name)}</span><span class="muted" style="font-size:.85rem">${I.mastered} of ${I.n} memorized</span></div>
+      <div class="bar"><i style="width:${Math.round(I.mastered*100/I.n)}%"></i></div>
+      ${I.complete?`<h3>Challenge complete. Well done, good and faithful servant.</h3><p class="hint">Keep reviewing to hold these verses fast.</p>`:`
+      <div class="vhead"><span class="ref">${esc(ref)}</span><span class="tag">${esc(v.version)}</span>${dots(v)}</div>
+      <p class="verse">${esc(v.text)}</p>`}
+      ${c.music&&!I.complete&&songFor(ref)?`<p class="hint">Song: ${esc(songFor(ref).title)} · ${esc(songFor(ref).artist)}${songFor(ref).tr?' · sung in '+esc(songFor(ref).tr):''}${songFor(ref).note?' '+esc(songFor(ref).note):''}</p>`:''}
+      ${c.doctrines&&!I.complete?`<p class="hint"><b>${DOCTRINES[I.cur].art}. ${esc(DOCTRINES[I.cur].title)}.</b> ${esc(DOCTRINES[I.cur].sum)}</p>${docRefs(DOCTRINES[I.cur])}`:''}
+      <div class="row"><button class="btn primary" data-act="practice-ref" data-id="${esc(ref)}">${I.complete?'Review':'Practice'}</button>${c.music&&!I.complete?listenBtn(ref):''}<span class="hint">${next}</span></div>
+    </article>`;
+  });
+  if(!active.length){
+    h+=`<article class="card feature"><h3>Start a memory challenge</h3><p class="hint">Try the 12 Month Warrior, 1 Month Peace, 7 Day Romans Road, A to Z Alphabet, Jesus’ Words, Doctrine, Books of the Bible or Scripture Songs. Each one opens new verses on a schedule and quizzes you as you go.</p><div class="row"><button class="btn primary" data-act="tab" data-id="challenges">See challenges</button></div></article>`;
+  }
+  const review=S.verses.filter(v=>v.mastery<3&&!shown.has(v.id)).slice(0,4);
+  if(review.length){h+=`<div class="section-h"><h3>Keep working on</h3><button class="btn ghost small" data-act="tab" data-id="list">All my verses</button></div>`+review.map(verseCard).join('')}
+  const mem=S.verses.filter(v=>v.mastery>=3).length;
+  h+=`<p class="hint" style="text-align:center">${mem} verse${mem===1?'':'s'} memorized · ${S.verses.length} in your list</p></div>`;
+  return h;
+}
+
+let filter='all';
+function viewList(){
+  const list=S.verses.filter(v=>filter==='all'||(filter==='done'?v.mastery>=3:v.mastery<3));
+  return `<div class="stack">
+    <div class="row between"><h2>My verses</h2><button class="btn primary" data-act="edit">+ Add verse</button></div>
+    <p class="hint">Copy a verse from your Bible app or BibleGateway.com in any version, then tap Add verse and paste it in.</p>
+    <div class="chips">${[['all','All'],['learning','Learning'],['done','Memorized']].map(([k,l])=>`<button class="chip" data-act="filter" data-id="${k}" aria-pressed="${filter===k}">${l}</button>`).join('')}</div>
+    ${list.length?list.map(verseCard).join(''):`<div class="card empty"><h3>${filter==='done'?'No memorized verses yet':'Your list is empty'}</h3><p class="hint">${filter==='done'?'Score 100% on Hard, or 95% on Recite, to mark a verse memorized.':'Add a verse you love, or pick one from the Library.'}</p></div>`}
+  </div>`;
+}
+
+function viewLibrary(){
+  const topics=[...new Set(BUILTIN.map(b=>b.topic))];
+  return `<div class="stack"><div><h2>Verse library</h2><p class="hint">Built-in verses are in the King James Version. After adding one, tap Edit to paste in your own translation.</p></div>
+  ${topics.map(t=>`<div class="section-h"><h3>${esc(t)}</h3></div><div class="card">${BUILTIN.filter(b=>b.topic===t).map(b=>{const have=findVerse(b.ref);return `<div class="lib-item"><div class="body"><span class="ref">${esc(b.ref)}</span><p class="verse clamp">${esc(b.text)}</p></div>${have?`<span class="tag" style="margin-top:4px">In list</span>`:`<button class="btn small" data-act="lib-add" data-id="${esc(b.ref)}">Add</button>`}</div>`}).join('<hr style="border:0;border-top:1px solid var(--line);margin:0;width:100%">')}</div>`).join('')}
+  </div>`;
+}
+
+let stopConfirm=null;
+function viewChallenges(){
+  return `<div class="stack"><div><h2>Challenges</h2><p class="hint">Start a challenge and its verses go into your list. A verse counts as memorized when you score 100% on Hard or 95% on Recite.</p></div>
+  ${CHALLENGES.map(c=>{const I=chInfo(c);
+    if(!I)return `<article class="card"><div class="row between"><h3>${esc(c.name)}</h3><span class="tag">${c.refs.length} ${c.doctrines?'doctrines':'verses'}</span></div><p class="hint">${esc(c.blurb)}</p>${c.doctrines?`<details class="refs"><summary>See all 20 doctrines</summary><ol class="roll">${DOCTRINES.map((d,i)=>`<li><span class="n">${i+1}</span><div class="what"><b>${d.art}. ${esc(d.title)}</b><span class="dsum">${esc(d.sum)}</span><span>Memory verse: ${esc(d.key)}</span></div></li>`).join('')}</ol></details>`:''}<div class="row"><button class="btn primary" data-act="ch-start" data-id="${c.id}">Start challenge</button></div></article>`;
+    return `<article class="card feature"><div class="row between"><h3>${esc(c.name)}</h3><span class="muted" style="font-size:.85rem">Day ${Math.min(I.el+1,c.days)} of ${c.days}</span></div>
+      <div class="bar"><i style="width:${Math.round(I.mastered*100/I.n)}%"></i></div>
+      <p class="hint">${I.mastered} of ${I.n} memorized</p>
+      ${c.music?`<div class="row"><a class="btn small" href="${esc(S.playlist||DEFAULT_PL)}" target="_blank" rel="noopener">♪ Open the playlist</a></div>`:''}
+      <ol class="roll">${c.refs.map((r,i)=>{const open=i<I.unlocked;const st=I.done[i]?'done':open?'open':'';
+        return `<li><span class="n ${st}">${I.done[i]?'✓':c.letters?String.fromCharCode(65+i):i+1}</span><div class="what">${c.doctrines?`<b>${DOCTRINES[i].art}. ${esc(DOCTRINES[i].title)}</b><span class="dsum">${esc(DOCTRINES[i].sum)}</span><span>Memory verse: ${esc(r)}</span>`:`<b>${esc(r)}</b>`}${c.music&&songFor(r)?`<span>${esc(songFor(r).title)}</span>`:''}<span>${I.done[i]?'Memorized':open?MASTERY[(I.verses[i]||{}).mastery||0]:'Opens '+niceDate(I.opens(i))}</span>${c.doctrines?docRefs(DOCTRINES[i]):''}</div>${open&&c.music?listenBtn(r,'small ghost'):''}${open?`<button class="btn small" data-act="practice-ref" data-id="${esc(r)}">Practice</button>`:''}</li>`}).join('')}</ol>
+      <div class="row">${stopConfirm===c.id?`<div class="stack" style="gap:8px;width:100%"><b>Stop this challenge?</b><div class="row"><button class="btn danger small" data-act="ch-stop" data-id="${c.id}">Stop, keep verses</button><button class="btn danger small" data-act="ch-stop-clear" data-id="${c.id}">Stop, remove verses</button><button class="btn ghost small" data-act="ch-stop-cancel">Keep going</button></div><p class="hint">Remove verses clears this challenge’s verses from My Verses. Verses you’ve memorized, and verses another active challenge uses, stay.</p></div>`:`<button class="btn ghost small" data-act="ch-stop-ask" data-id="${c.id}">Stop challenge</button>`}</div>
+    </article>`}).join('')}
+  </div>`;
+}
+
+function viewMore(){
+  const item=(id,title,sub,icon)=>`<button class="menu-item" data-act="tab" data-id="${id}"><svg viewBox="0 0 24 24">${icon}</svg><span class="mi-text"><b>${title}</b><span>${sub}</span></span><span class="chev">›</span></button>`;
+  return `<div class="stack"><h2>More</h2><div class="card menu">
+    ${item('songs','Scripture Songs',SONGS.length+' songs from your Amazon Music playlist','<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>')}
+    ${item('sword','Sword Drill','A random verse from anywhere in the Bible','<path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="m13 19 6-6"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/>')}
+    ${item('settings','Settings','Daily reminder, default version, about','<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>')}
+    ${item('donate','Donate','Ronald McDonald House of Galveston','<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>')}
+  </div></div>`;
+}
+// Bible Sword Drill: a random verse from anywhere in the Bible, looked up through Claude.
+const SD_BOOKS=[["Genesis",50],["Exodus",40],["Leviticus",27],["Numbers",36],["Deuteronomy",34],["Joshua",24],["Judges",21],["Ruth",4],["1 Samuel",31],["2 Samuel",24],["1 Kings",22],["2 Kings",25],["1 Chronicles",29],["2 Chronicles",36],["Ezra",10],["Nehemiah",13],["Esther",10],["Job",42],["Psalms",150],["Proverbs",31],["Ecclesiastes",12],["Song of Solomon",8],["Isaiah",66],["Jeremiah",52],["Lamentations",5],["Ezekiel",48],["Daniel",12],["Hosea",14],["Joel",3],["Amos",9],["Obadiah",1],["Jonah",4],["Micah",7],["Nahum",3],["Habakkuk",3],["Zephaniah",3],["Haggai",2],["Zechariah",14],["Malachi",4],["Matthew",28],["Mark",16],["Luke",24],["John",21],["Acts",28],["Romans",16],["1 Corinthians",16],["2 Corinthians",13],["Galatians",6],["Ephesians",6],["Philippians",4],["Colossians",4],["1 Thessalonians",5],["2 Thessalonians",3],["1 Timothy",6],["2 Timothy",4],["Titus",3],["Philemon",1],["Hebrews",13],["James",5],["1 Peter",5],["2 Peter",3],["1 John",5],["2 John",1],["3 John",1],["Jude",1],["Revelation",22]];
+const SD_TOTAL=SD_BOOKS.reduce((a,b)=>a+b[1],0);
+const sdSample=(window.claude&&window.claude.use)?window.claude.use('sample').catch(()=>null):Promise.resolve(null);
+let SD={armed:false,state:'idle',n:5,v:null,shown:false,msg:'',lastBook:null,running:false};
+function sdPick(){for(;;){let n=Math.floor(Math.random()*SD_TOTAL);for(const [book,ch] of SD_BOOKS){if(n<ch){if(book!==SD.lastBook)return {book,chapter:n+1};break}n-=ch}}}
+async function sdFetch(){
+  const sample=await sdSample;if(!sample)throw {code:'unavailable'};
+  for(let k=0;k<2;k++){const {book,chapter}=sdPick();const r=Math.random().toFixed(4);
+    const prompt=`You are a King James Version (1769 text) Bible reference.\nBook: ${book}. Chapter: ${chapter}.\nLet N be the number of verses in ${book} chapter ${chapter} in the KJV. Use verse number floor(${r} * N) + 1.\nReturn that verse's exact KJV wording, word for word, with no added commentary and no verse numbers or pilcrows inside the text.\nRespond with only JSON: {"verse": <integer>, "text": "<verse text>"}`;
+    try{const out=await sample.json(prompt,{cache:false,modelTier:'default'});
+      if(out&&Number.isInteger(out.verse)&&out.verse>0&&typeof out.text==='string'&&out.text.trim())return {book,chapter,verse:out.verse,text:out.text.trim()};
+    }catch(e){if(e&&(e.code==='not_granted'||e.code==='rate_limited'))throw e}}
+  throw {code:'failed'};
+}
+function sdStageHtml(){
+  if(SD.state==='count')return `<div class="sd-count">${SD.n}</div>`;
+  if(SD.state==='wait')return `<div class="sd-wait">Drawing the sword…</div>`;
+  if(SD.state==='error'&&!SD.armed)return `<p class="hint" style="text-align:center">${esc(SD.msg)}</p>`;
+  if(SD.state==='verse'&&!SD.armed){const v=SD.v,ref=`${v.book} ${v.chapter}:${v.verse}`,ot=SD_BOOKS.findIndex(b=>b[0]===v.book)<39,have=findVerse(ref);
+    return `<div class="sd-page"><div class="eyebrow">${ot?'Old Testament':'New Testament'}</div><div class="drillref">${esc(ref)}</div>
+    ${SD.shown?`<p class="verse">${esc(v.text)}</p><div class="row">${have?`<span class="tag">In My Verses</span>`:`<button class="btn small" data-act="sd-add">+ Add to My Verses</button>`}</div>`:`<button class="btn" data-act="sd-show">Show verse</button>`}</div>`}
+  if(SD.armed)return `<div class="sd-wait">Swords ready</div><p class="hint" style="text-align:center">Bibles closed and held high. Tap Charge to start the countdown.</p>`;
+  return `<p class="hint" style="text-align:center">Find the verse in your Bible before the other side does. Tap Sword Ready, then Charge to start the countdown, then race to the reference.</p>`;
+}
+const sdLabel=()=>SD.running||SD.armed?'Charge':(SD.state==='verse'||SD.state==='error')?'New Battle':'Sword Ready';
+function sdPaint(){const el=$('#sdStage');if(el)el.innerHTML=sdStageHtml();const g=$('#sdGo');if(g){g.disabled=SD.running;g.textContent=sdLabel()}}
+function viewSword(){
+  return `<div class="stack"><div><button class="btn ghost small back" data-act="tab" data-id="more">‹ More</button><h2>Sword Drill</h2><p class="hint">A random verse from anywhere in the Bible, KJV.</p></div>
+  <div class="sd-stage" id="sdStage" aria-live="polite">${sdStageHtml()}</div>
+  <button class="btn primary go sd-go" id="sdGo" data-act="sd-go"${SD.running?' disabled':''}>${sdLabel()}</button></div>`;
+}
+async function sdGo(){
+  if(SD.running)return;SD.running=true;SD.shown=false;
+  const p=sdFetch();p.catch(()=>{});
+  for(let n=5;n>=1;n--){SD.state='count';SD.n=n;sdPaint();await new Promise(r=>setTimeout(r,1000))}
+  SD.state='wait';sdPaint();
+  try{SD.v=await p;SD.lastBook=SD.v.book;SD.state='verse';markDay();save()}
+  catch(e){SD.state='error';SD.msg=e&&e.code==='not_granted'?'The verse lookup is turned off for this page. Allow it from the page’s Permissions menu, then tap Sword Ready.':e&&e.code==='unavailable'?'Sword Drill looks up verses through Claude, so it works when Hidden Word is opened in the Claude app while signed in.':e&&e.code==='rate_limited'?'Too many verses at once. Wait a minute, then tap Sword Ready.':'That verse didn’t come through. Tap Sword Ready to try again.'}
+  SD.running=false;sdPaint();
+}
+function viewDonate(){
+  return `<div class="stack"><div><button class="btn ghost small back" data-act="tab" data-id="more">‹ More</button><h2>Donate</h2></div>
+  <article class="card">
+    <p class="donate-text">This app is free. We don’t ask for money.</p>
+    <p class="donate-text">However, an organization that is dear to our heart is the Ronald McDonald House in Galveston, Texas. They were a Godsend to us in a very stressful and anxious time in our life.</p>
+    <div class="row"><a class="btn primary go" href="https://www.clover.com/pay-widgets/0306609c-5ace-491d-aa4d-def47d729c0f" target="_blank" rel="noopener">♥ Donate to Ronald McDonald House</a></div>
+    <p class="hint">Opens the Ronald McDonald House of Galveston’s secure donation page. Your gift goes directly to them.</p>
+  </article>
+  <article class="card"><h3>Ronald McDonald House of Galveston</h3>
+    <p class="hint">301 14th St, Galveston, TX 77550<br>Phone: (409) 762-8770<br>Tax ID (EIN): 76-0114962</p>
+  </article></div>`;
+}
+function viewSongs(){
+  const pl=S.playlist||DEFAULT_PL;
+  return `<div class="stack"><div><button class="btn ghost small back" data-act="tab" data-id="more">‹ More</button><h2>Scripture Songs</h2><p class="hint">Verses set to music, from your Amazon Music playlist.</p></div>
+  <article class="card"><div class="row between"><h3>Playlist</h3><span class="tag">${SONGS.length} songs</span></div>
+    <p class="hint">Verses set to music. Tap Listen to find each song in Amazon Music, or build them into one playlist there and paste its link below. These songs are used in the Scripture Songs challenge.</p>
+    <ol class="roll">${SONGS.map((s,i)=>`<li><span class="n open">${i+1}</span><div class="what"><b>${esc(s.title)}</b><span>${esc(s.ref)} · ${esc(s.artist)}${s.tr?' · sung in '+esc(s.tr):''}</span></div>${listenBtn(s.ref,'small')}</li>`).join('')}</ol>
+    <div class="row"><button class="btn small" data-act="copy-songs">Copy song list</button></div>
+    <label class="f" for="plLink">My Amazon Music playlist link<input id="plLink" type="url" inputmode="url" placeholder="https://music.amazon.com/user-playlists/…" value="${esc(pl)}"></label>
+    ${/^https:\/\//.test(pl)?`<div class="row"><a class="btn primary" href="${esc(pl)}" target="_blank" rel="noopener">♪ Open my playlist</a></div>`:''}
+    <p class="hint">Each song lists the version it sings. The app\u2019s built-in text is KJV, so to match a song, tap Edit on the verse and paste in that version.</p>
+  </article>
+  <article class="card"><h3>Scripture Songs challenge</h3><p class="hint">Memorize one song’s passage a week for 12 weeks.</p><div class="row"><button class="btn primary" data-act="tab" data-id="challenges">Go to challenges</button></div></article></div>`;
+}
+let resetAsk=false;
+function viewSettings(){
+  const R=S.reminder||{time:'06:00',days:'daily'};
+  return `<div class="stack"><div><button class="btn ghost small back" data-act="tab" data-id="more">‹ More</button><h2>Settings</h2></div>
+  <article class="card"><h3>Daily reminder</h3>
+    <p class="hint">Add a repeating event to your iPhone Calendar with an alert, so you get a nudge to practice your verse each day.</p>
+    <div class="rem-grid"><label class="f" for="remTime">Time<input type="time" id="remTime" value="${esc(R.time)}"></label>
+    <label class="f" for="remDays">Repeat<select id="remDays"><option value="daily"${R.days==='daily'?' selected':''}>Every day</option><option value="weekdays"${R.days==='weekdays'?' selected':''}>Weekdays</option><option value="weekends"${R.days==='weekends'?' selected':''}>Weekends</option></select></label></div>
+    <div class="row"><button class="btn primary" data-act="ics">Add to iPhone Calendar</button></div>
+    <div class="err" id="remMsg" aria-live="polite"></div>
+    <p class="hint">Your phone asks to add the event; tap Add to Calendar. This works when Hidden Word is opened in Safari from its website. To change the time later, edit or delete the event in the Calendar app.</p>
+  </article>
+  <article class="card"><h3>Default version</h3>
+    <p class="hint">The version picked first when you add a verse.</p>
+    <label class="f" for="defVer">Version<select id="defVer">${VERSIONS.map(x=>`<option${x===(S.version||'KJV')?' selected':''}>${x}</option>`).join('')}</select></label>
+  </article>
+  <article class="card"><h3>Start fresh</h3>
+    <p class="hint">Clears every verse in My Verses, stops all challenges and resets your streak and progress. Your reminder, default version and playlist link stay.</p>
+    <div class="row">${resetAsk?`<button class="btn danger" data-act="reset-do">Yes, clear everything</button><button class="btn ghost" data-act="reset-cancel">Cancel</button>`:`<button class="btn danger" data-act="reset-ask">Clear my list and start fresh</button>`}</div>
+  </article>
+  <article class="card"><h3>About Hidden Word</h3>
+    <p class="hint">Built-in verses are King James Version. Paste any translation into your own list. Your verses and progress are saved on this device.</p>
+  </article></div>`;
+}
+function pad(n){return String(n).padStart(2,'0')}
+function makeIcs(){
+  const R=S.reminder||{time:'06:00',days:'daily'};
+  const [hh,mm]=R.time.split(':').map(Number);
+  const d=new Date();d.setDate(d.getDate()+1);d.setHours(hh,mm,0,0);
+  const e=new Date(d.getTime()+15*60000);
+  const f=x=>`${x.getFullYear()}${pad(x.getMonth()+1)}${pad(x.getDate())}T${pad(x.getHours())}${pad(x.getMinutes())}00`;
+  const n=new Date();const stamp=`${n.getUTCFullYear()}${pad(n.getUTCMonth()+1)}${pad(n.getUTCDate())}T${pad(n.getUTCHours())}${pad(n.getUTCMinutes())}00Z`;
+  const rule={daily:'FREQ=DAILY',weekdays:'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',weekends:'FREQ=WEEKLY;BYDAY=SA,SU'}[R.days];
+  const url=location.href.split('#')[0];
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Hidden Word//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',
+   'UID:'+uid()+'-'+Date.now()+'@hiddenword','DTSTAMP:'+stamp,'DTSTART:'+f(d),'DTEND:'+f(e),'RRULE:'+rule,
+   'SUMMARY:Practice memory verse','DESCRIPTION:Thy word have I hid in mine heart. Open Hidden Word and practice today\'s verse.\n'+url,'URL:'+url,
+   'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Practice memory verse','TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+}
+function downloadIcs(){
+  if(/claude/i.test(location.hostname)){$('#remMsg').textContent='Calendar files can’t be added from inside Claude. Open Hidden Word from its website in Safari and tap this button there.';return}
+  const blob=new Blob([makeIcs()],{type:'text/calendar;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='hidden-word-reminder.ics';
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);
+  toast('Opening your calendar…');
+}
+document.addEventListener('change',e=>{
+  if(e.target.id==='remTime'||e.target.id==='remDays'){S.reminder={time:$('#remTime').value||'06:00',days:$('#remDays').value};save()}
+  else if(e.target.id==='plLink'){S.playlist=e.target.value.trim();save();render();toast('Playlist link saved')}
+  else if(e.target.id==='defVer'){S.version=e.target.value;save();toast('Default version set to '+S.version)}
+});
+
+function render(){
+  const t=S.tab||'today';
+  $('#view').innerHTML=t==='more'?viewMore():t==='songs'?viewSongs():t==='settings'?viewSettings():t==='donate'?viewDonate():t==='sword'?viewSword():t==='list'?viewList():t==='library'?viewLibrary():t==='challenges'?viewChallenges():viewToday();
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-current',(b.dataset.id===t||(b.dataset.id==='more'&&(t==='songs'||t==='settings'||t==='donate'||t==='sword')))?'page':'false'));
+  const s=streak();$('#streak').innerHTML=`<b>${s}</b><span>day streak</span>`;
+}
+
+/* ---------- sheet ---------- */
+function openSheet(html,full){const p=$('#panel');p.className='panel'+(full?' full':'');p.innerHTML=html;$('#sheet').hidden=false;document.body.style.overflow='hidden'}
+function closeSheet(){stopTimer();D=null;$('#sheet').hidden=true;document.body.style.overflow='';Q=null;render()}
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2200)}
+
+/* ---------- add / edit ---------- */
+function parsePasted(raw){
+  let t=String(raw).replace(/https?:\/\/\S+/g,' ').replace(/\[[a-z]{1,2}\]/g,'').replace(/\([A-Z]{1,2}\)/g,'');
+  let version=null,ref=null;
+  const vm=t.match(/[(\[]?\b(NKJV|KJV|ESV|NIV|NLT|NASB1995|NASB|CSB|HCSB|AMP|NRSV|RSV|BSB|WEB|ASV|LSB|MSG|NET|CEV|GNT)\b[)\]]?/);
+  if(vm){version=vm[1].startsWith('NASB')?'NASB':vm[1];t=t.replace(vm[0],' ')}
+  const rm=t.match(/(?:^|\s|[—–-])((?:[1-3]\s?)?[A-Z][a-z]+\.?(?:\s(?:of\s)?[A-Z][a-z]+)?\s\d{1,3}:\d{1,3}(?:\s?[-–]\s?\d{1,3})?)/);
+  if(rm){const pos=t.indexOf(rm[1]),tail=t.slice(pos+rm[1].length).trim();if(pos<6||tail.length<12){ref=rm[1].replace(/\s?[–]\s?/,'-');t=t.slice(0,pos)+' '+t.slice(pos+rm[1].length)}}
+  t=t.replace(/\s+/g,' ').trim().replace(/^[—–\-:,\s]+|[—–\-,\s]+$/g,'').replace(/^["“]|["”]$/g,'').trim();
+  if(ref)t=t.replace(/^\d{1,3}\s+(?=[A-Za-z“"])/,'');
+  return {ref,version,text:t};
+}
+let E=null;
+function openEdit(id){
+  const v=id?S.verses.find(x=>x.id===id):null;E={id:v?v.id:null,delAsk:false};
+  const ver=v?v.version:S.version||'KJV';
+  openSheet(`<div class="row between"><h2>${v?'Edit verse':'Add a verse'}</h2><button class="btn ghost" data-act="close">Cancel</button></div>
+  <p class="hint">Copy a verse from your Bible app or BibleGateway.com, then paste it below. The reference and version fill in when the app finds them.</p>
+  <label class="f" for="fText">Verse text<textarea id="fText" rows="6" placeholder="Paste or type the verse here">${esc(v?v.text:'')}</textarea></label>
+  <div id="fNote"></div>
+  <div class="two"><label class="f" for="fRef">Reference<input id="fRef" placeholder="John 3:16" value="${esc(v?v.ref:'')}" autocomplete="off"></label>
+  <label class="f" for="fVer">Version<select id="fVer">${VERSIONS.map(x=>`<option${x===ver?' selected':''}>${x}</option>`).join('')}</select></label></div>
+  <a class="btn small" id="bgLink" target="_blank" rel="noopener" href="#">Look up in BibleGateway</a>
+  ${v?'<p class="hint">Changing the text starts this verse’s progress over.</p>':''}
+  <div class="err" id="fErr"></div>
+  <div class="row"><button class="btn primary" data-act="save-verse">Save verse</button>${v?`<button class="btn danger" data-act="del" id="delBtn">Delete</button>`:''}</div>`);
+  const ta=$('#fText');
+  ta.addEventListener('paste',()=>setTimeout(applyDetect,0));
+  ['input','change'].forEach(ev=>{$('#fRef').addEventListener(ev,bgLink);$('#fVer').addEventListener(ev,bgLink)});
+  bgLink();
+}
+function applyDetect(){
+  const p=parsePasted($('#fText').value);if(!p.text)return;
+  $('#fText').value=p.text;
+  if(p.ref&&!$('#fRef').value.trim())$('#fRef').value=p.ref;
+  if(p.version)$('#fVer').value=p.version;
+  const bits=[p.ref,p.version].filter(Boolean);
+  $('#fNote').innerHTML=bits.length?`<div class="note">Found ${esc(bits.join(' · '))}</div>`:'';
+  bgLink();
+}
+function bgLink(){
+  const r=$('#fRef').value.trim(),ver=$('#fVer').value,a=$('#bgLink');
+  a.hidden=!r;a.href='https://www.biblegateway.com/passage/?search='+encodeURIComponent(r)+(ver!=='Other'?'&version='+ver:'');
+  a.textContent='Look up '+(r||'')+(ver!=='Other'?' ('+ver+')':'')+' in BibleGateway';
+}
+function saveVerse(){
+  const text=$('#fText').value.replace(/\s+/g,' ').trim(),ref=$('#fRef').value.trim(),version=$('#fVer').value;
+  if(!text){$('#fErr').textContent='Paste or type the verse text first.';return}
+  if(!ref){$('#fErr').textContent='Add the reference, like John 3:16.';return}
+  S.version=version;
+  if(E.id){const v=S.verses.find(x=>x.id===E.id);if(v.text!==text){v.mastery=0;v.best={}}Object.assign(v,{text,ref,version,src:'mine'})}
+  else S.verses.unshift(mkVerse(ref,text,version,'mine'));
+  save();closeSheet();toast(E.id?'Verse updated':'Added to My verses');
+}
+
+/* ---------- quiz ---------- */
+let Q=null;
+function tokenize(text){
+  return text.split(/(\s+)/).filter(t=>t!=='').map(t=>{
+    if(/^\s+$/.test(t))return {t:' '};
+    const m=t.match(/^([^A-Za-z0-9]*)([A-Za-z0-9][A-Za-z0-9'’\-]*[A-Za-z0-9]|[A-Za-z0-9])([^A-Za-z0-9]*)$/);
+    return m?{pre:m[1],w:m[2],post:m[3]}:{t};
+  });
+}
+const norm=s=>String(s).toLowerCase().replace(/[‘’]/g,"'").replace(/[^a-z0-9]/g,'');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function openQuiz(id,level){
+  const v=S.verses.find(x=>x.id===id);if(!v)return;
+  Q={id,level:level||['easy','medium','hard','recite'][Math.min(v.mastery||0,3)],bank:true,peek:false};
+  newRound();
+}
+function newRound(){
+  const v=S.verses.find(x=>x.id===Q.id);
+  Q.tokens=tokenize(v.text);Q.checked=false;Q.peek=false;Q.active=null;
+  if(Q.level!=='recite'){
+    const idx=Q.tokens.map((t,i)=>t.w?i:-1).filter(i=>i>=0);
+    const pref=Q.level==='hard'?idx:idx.filter(i=>Q.tokens[i].w.length>=3);
+    const pool=pref.length?pref:idx;
+    const n=Math.max(1,Math.round(idx.length*LEVELS[Q.level].ratio));
+    let pick=shuffle(pool).slice(0,n);
+    if(pick.length<n)pick=pick.concat(shuffle(idx.filter(i=>!pick.includes(i))).slice(0,n-pick.length));
+    Q.blanks=new Set(pick);
+    Q.bankWords=shuffle([...Q.blanks].map(i=>Q.tokens[i].w));
+  }
+  renderQuiz();
+}
+function renderQuiz(){
+  const v=S.verses.find(x=>x.id===Q.id);const rec=Q.level==='recite';
+  let body;
+  if(rec){body=`<label class="f" for="reciteBox">Type the whole verse from memory<textarea class="recite" id="reciteBox" autocapitalize="sentences" spellcheck="false"></textarea></label><div id="diff"></div>`}
+  else{body=`<div class="qverse verse">${Q.tokens.map((t,i)=>{
+      if(!t.w)return esc(t.t);
+      if(!Q.blanks.has(i))return esc(t.pre+t.w+t.post);
+      return `<span class="nw">`+esc(t.pre)+`<span class="blank"><input id="b${i}" data-i="${i}" aria-label="Missing word" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="width:${Math.max(3,t.w.length+1.5)}ch"><span class="fix"></span></span>`+esc(t.post)+`</span>`;
+    }).join('')}</div>
+    ${Q.bank?`<div><div class="eyebrow" style="margin-bottom:8px">Word bank · tap to fill</div><div class="bank">${Q.bankWords.map((w,k)=>`<button data-act="bank" data-id="${k}">${esc(w)}</button>`).join('')}</div></div>`:''}`}
+  openSheet(`<div class="row between"><div><div class="eyebrow">Memorize</div><div class="vhead"><h2>${esc(v.ref)}</h2><span class="tag">${esc(v.version)}</span></div></div><button class="btn ghost" data-act="close">Done</button></div>
+    <div class="seg" role="group" aria-label="Difficulty">${Object.entries(LEVELS).map(([k,l])=>`<button data-act="level" data-id="${k}" aria-pressed="${Q.level===k}">${l.label}</button>`).join('')}</div>
+    <p class="hint">${rec?'Write it out word for word. Punctuation and capitals don’t count.':LEVELS[Q.level].label+': about '+Math.round(LEVELS[Q.level].ratio*100)+'% of the words are blank. Score 100% to move up.'}</p>
+    ${body}
+    <div id="qResult"></div>
+    ${Q.peek?`<p class="peek">${esc(v.text)}</p>`:''}
+    <div class="row"><button class="btn primary" data-act="check">Check</button><button class="btn" data-act="reshuffle">${rec?'Clear':'New blanks'}</button>${rec?'':`<button class="btn ghost" data-act="toggle-bank">${Q.bank?'Hide':'Show'} word bank</button>`}<button class="btn ghost" data-act="peek">${Q.peek?'Hide verse':'Peek at verse'}</button></div>
+    <p class="hint">Progress: ${dots(v)}</p>`,true);
+  const first=document.querySelector('.blank input');
+  document.querySelectorAll('.blank input').forEach(inp=>{
+    inp.addEventListener('focus',()=>Q.active=inp);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const all=[...document.querySelectorAll('.blank input')];const nx=all[all.indexOf(inp)+1];nx?nx.focus():check()}});
+  });
+  if(first&&!matchMedia('(pointer:coarse)').matches)first.focus();
+}
+function fillFromBank(k,btn){
+  const all=[...document.querySelectorAll('.blank input')];
+  let target=Q.active&&!Q.active.value?Q.active:all.find(i=>!i.value);
+  if(!target)return;
+  target.value=Q.bankWords[k];btn.disabled=true;
+  const nx=all.find(i=>!i.value);if(nx){Q.active=nx;nx.focus({preventScroll:true})}
+}
+function lcsMask(a,b){
+  const n=a.length,m=b.length,dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  const hit=new Array(n).fill(false);let i=0,j=0;
+  while(i<n&&j<m){if(a[i]===b[j]){hit[i]=true;i++;j++}else if(dp[i+1][j]>=dp[i][j+1])i++;else j++}
+  return hit;
+}
+function check(){
+  const v=S.verses.find(x=>x.id===Q.id);let ok,total,pct;
+  if(Q.level==='recite'){
+    const words=v.text.split(/\s+/).filter(w=>norm(w));
+    const a=words.map(norm),b=$('#reciteBox').value.split(/\s+/).map(norm).filter(Boolean);
+    const hit=lcsMask(a,b);ok=hit.filter(Boolean).length;total=a.length;pct=Math.round(ok*100/total);
+    $('#diff').innerHTML=`<p class="peek diff">${words.map((w,i)=>hit[i]?esc(w):`<span class="miss">${esc(w)}</span>`).join(' ')}</p><p class="hint">Underlined words were missed or out of order.</p>`;
+  }else{
+    const inputs=[...document.querySelectorAll('.blank input')];ok=0;total=inputs.length;
+    inputs.forEach(inp=>{const ans=Q.tokens[+inp.dataset.i].w,good=norm(inp.value)===norm(ans),w=inp.parentElement;
+      w.classList.toggle('ok',good);w.classList.toggle('bad',!good);w.querySelector('.fix').textContent=good?'':ans;if(good)ok++});
+    pct=Math.round(ok*100/total);
+  }
+  const before=v.mastery||0;
+  v.best=v.best||{};v.best[Q.level]=Math.max(v.best[Q.level]||0,pct);
+  const pass=Q.level==='recite'?pct>=95:pct===100;
+  const reach={easy:1,medium:2,hard:3,recite:3}[Q.level];
+  if(pass)v.mastery=Math.max(before,reach);
+  v.last=today();markDay();save();
+  const order=['easy','medium','hard','recite'];const nextL=order[order.indexOf(Q.level)+1];
+  let msg;
+  if(pass&&v.mastery>=3&&before<3)msg=`${ok} of ${total} — memorized! This verse is hid in your heart.`;
+  else if(pass)msg=`${ok} of ${total} correct. ${nextL?'Try '+LEVELS[nextL].label+' next.':'Great work.'}`;
+  else msg=`${ok} of ${total} correct (${pct}%). Read it through once more, then tap New blanks.`;
+  $('#qResult').innerHTML=`<div class="result ${pass?'good':'try'}">${esc(msg)}</div>`;
+  const s=streak();$('#streak').innerHTML=`<b>${s}</b><span>day streak</span>`;
+}
+
+/* ---------- sword drill ---------- */
+let D=null,dTimer=null;
+const drillPool=()=>S.verses.filter(v=>v.mastery>=3);
+function stopTimer(){if(dTimer){clearInterval(dTimer);dTimer=null}}
+function openDrill(){D={mode:'ref',cur:null,shown:false,start:0,secs:0,got:0,miss:0,last:null};renderDrill()}
+function renderDrill(){
+  const pool=drillPool(),v=D.cur?S.verses.find(x=>x.id===D.cur):null;
+  let box;
+  if(!pool.length)box=`<div class="drillbox empty"><h3>No memorized verses yet</h3><p class="hint">The Memory Drill only uses verses you have memorized. Score 100% on Hard, or 95% on Recite, and the verse joins the drill.</p></div>`;
+  else if(!v)box=`<div class="drillbox"><p class="hint">Press Go to draw a verse from your ${pool.length} memorized verse${pool.length===1?'':'s'}.</p></div>`;
+  else{
+    const prompt=D.mode==='ref'?`<div class="eyebrow">Say this verse</div><div class="drillref">${esc(v.ref)}</div>`:`<div class="eyebrow">Name the reference</div><p class="verse">${esc(v.text)}</p>`;
+    const ans=D.mode==='ref'?`<p class="verse">${esc(v.text)}</p>`:`<div class="drillref">${esc(v.ref)}</div>`;
+    box=`<div class="drillbox">${prompt}<div class="timer" id="dTime">${D.shown?D.secs.toFixed(1):'0.0'}s</div>${D.shown?`<div class="answer"><div class="eyebrow">Answer · ${esc(v.version)}</div>${ans}</div>`:''}</div>`;
+  }
+  const total=D.got+D.miss;
+  openSheet(`<div class="row between"><div><div class="eyebrow">Memorized verses only</div><h2>Memory Drill</h2></div><button class="btn ghost" data-act="close">Done</button></div>
+    <div class="seg two-seg" role="group" aria-label="Drill type"><button data-act="drill-mode" data-id="ref" aria-pressed="${D.mode==='ref'}">Say the verse</button><button data-act="drill-mode" data-id="text" aria-pressed="${D.mode==='text'}">Name the reference</button></div>
+    ${box}
+    ${pool.length?(v&&!D.shown?`<button class="btn primary go" data-act="drill-reveal">Reveal answer</button>`:v&&D.shown?`<div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn go ok-btn" data-act="drill-mark" data-id="got">Got it</button><button class="btn go" data-act="drill-mark" data-id="miss">Missed it</button></div>`:`<button class="btn primary go" data-act="drill-go">Go</button>`):''}
+    ${total?`<p class="hint" style="text-align:center">This round: <b>${D.got}</b> of ${total} correct</p>`:''}`,true);
+  if(v&&!D.shown){stopTimer();dTimer=setInterval(()=>{const el=$('#dTime');if(el)el.textContent=((Date.now()-D.start)/1000).toFixed(1)+'s'},100)}
+}
+function drillGo(){
+  const pool=drillPool();if(!pool.length)return;
+  let opts=pool.filter(v=>v.id!==D.last);if(!opts.length)opts=pool;
+  const v=opts[Math.floor(Math.random()*opts.length)];
+  D.cur=v.id;D.last=v.id;D.shown=false;D.start=Date.now();renderDrill();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  if(a==='tab'){S.tab=id;stopConfirm=null;save();render();scrollTo(0,0)}
+  else if(a==='filter'){filter=id;render()}
+  else if(a==='practice')openQuiz(id);
+  else if(a==='practice-ref'){const v=ensureVerse(id);openQuiz(v.id)}
+  else if(a==='edit')openEdit(id);
+  else if(a==='close')closeSheet();
+  else if(a==='save-verse')saveVerse();
+  else if(a==='del'){if(!E.delAsk){E.delAsk=true;b.textContent='Tap again to delete';return}S.verses=S.verses.filter(v=>v.id!==E.id);save();closeSheet();toast('Verse deleted')}
+  else if(a==='lib-add'){ensureVerse(id);render();toast('Added to My verses')}
+  else if(a==='ch-start'){const c=CHALLENGES.find(x=>x.id===id);S.challenges[id]={start:today()};c.refs.forEach(ensureVerse);save();render();toast(c.name+' started')}
+  else if(a==='ch-stop-ask'){stopConfirm=id;render()}
+  else if(a==='ch-stop-cancel'){stopConfirm=null;render()}
+  else if(a==='ch-stop'){delete S.challenges[id];stopConfirm=null;save();render();toast('Challenge stopped. Your verses stay in your list.')}
+  else if(a==='ch-stop-clear'){const c=CHALLENGES.find(x=>x.id===id);delete S.challenges[id];stopConfirm=null;
+    const keep=new Set(CHALLENGES.filter(x=>S.challenges[x.id]).flatMap(x=>x.refs).map(refKey)),mine=new Set(c.refs.map(refKey));
+    const before=S.verses.length;S.verses=S.verses.filter(v=>!(mine.has(refKey(v.ref))&&!keep.has(refKey(v.ref))&&(v.mastery||0)<3));
+    const n=before-S.verses.length;save();render();toast(`Challenge stopped. ${n} verse${n===1?'':'s'} removed.`)}
+  else if(a==='reset-ask'){resetAsk=true;render()}
+  else if(a==='reset-cancel'){resetAsk=false;render()}
+  else if(a==='reset-do'){resetAsk=false;S.verses=[];S.challenges={};S.days=[];save();render();toast('All cleared. Your list is empty.')}
+  else if(a==='level'){Q.level=id;newRound()}
+  else if(a==='reshuffle')newRound();
+  else if(a==='toggle-bank'){Q.bank=!Q.bank;renderQuiz()}
+  else if(a==='peek'){Q.peek=!Q.peek;const keep=[...document.querySelectorAll('.blank input')].map(i=>i.value);const rt=$('#reciteBox')?.value;renderQuiz();document.querySelectorAll('.blank input').forEach((i,k)=>i.value=keep[k]||'');if(rt!=null)$('#reciteBox').value=rt}
+  else if(a==='bank')fillFromBank(+id,b);
+  else if(a==='check')check();
+  else if(a==='ics')downloadIcs();
+  else if(a==='drill-open')openDrill();
+  else if(a==='sd-go'){if(SD.running)return;if(!SD.armed){SD.armed=true;sdPaint()}else{SD.armed=false;sdGo()}}
+  else if(a==='sd-show'){SD.shown=true;sdPaint()}
+  else if(a==='sd-add'){const v=SD.v;S.verses.unshift(mkVerse(`${v.book} ${v.chapter}:${v.verse}`,v.text,'KJV','builtin'));save();sdPaint();toast('Added to My Verses')}
+  else if(a==='drill-mode'){D.mode=id;D.cur=null;D.shown=false;stopTimer();renderDrill()}
+  else if(a==='drill-go')drillGo();
+  else if(a==='drill-reveal'){D.secs=(Date.now()-D.start)/1000;D.shown=true;stopTimer();renderDrill()}
+  else if(a==='drill-mark'){id==='got'?D.got++:D.miss++;markDay();save();drillGo()}
+  else if(a==='copy-songs'){const txt=SONGS.map((s,i)=>`${i+1}. ${s.title} — ${s.artist} (${s.ref})`).join('\n');try{navigator.clipboard.writeText(txt).then(()=>toast('Song list copied'),()=>toast('Couldn’t copy here. Long-press the list to select it.'))}catch(err){toast('Couldn’t copy here. Long-press the list to select it.')}}
+});
+$('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet()});
+render();
+</script>
+
+</body>
+</html>
