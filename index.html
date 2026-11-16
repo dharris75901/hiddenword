@@ -932,5 +932,60 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden
 render();
 </script>
 
+<!-- Add to Home Screen helper -->
+<style>
+#a2hs-btn{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:calc(76px + env(safe-area-inset-bottom));z-index:2147483000;background:#2f6fdf;color:#fff;border:none;border-radius:999px;padding:9px 14px;font:600 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.25);cursor:pointer}
+#a2hs-overlay{display:none;position:fixed;inset:0;z-index:2147483001;background:rgba(0,0,0,.5);overflow-y:auto;padding:20px 14px calc(20px + env(safe-area-inset-bottom))}
+#a2hs-overlay.open{display:block}
+#a2hs-box{max-width:520px;margin:0 auto;background:#fff;color:#1f2933;border-radius:16px;padding:18px 18px 8px;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-align:left}
+#a2hs-box h2{font-size:20px;margin:0 0 4px;color:#1f2933}
+#a2hs-box h3{font-size:16px;margin:16px 0 6px;color:#1f2933}
+#a2hs-box p{margin:0 0 8px;color:#5f6b76;font-size:14px}
+#a2hs-box ol,#a2hs-box ul{margin:0 0 8px;padding-left:22px}
+#a2hs-box li{margin-bottom:6px}
+#a2hs-box .a2hs-tip{background:#eef4ff;border-left:4px solid #2f6fdf;border-radius:8px;padding:10px 12px;font-size:14px;margin:8px 0}
+#a2hs-close{display:block;width:100%;margin:14px 0 10px;padding:12px;border:none;border-radius:10px;background:#2f6fdf;color:#fff;font:600 16px -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer}
+body:has(#sheet:not([hidden])) #a2hs-btn{display:none}
+</style>
+<button id="a2hs-btn" type="button">📲 Add to Home Screen</button>
+<div id="a2hs-overlay" role="dialog" aria-modal="true" aria-label="Add to Home Screen">
+  <div id="a2hs-box">
+    <h2>Put this app on your Home Screen</h2>
+    <p>Takes about 30 seconds. Then it opens with one tap, like a regular app.</p>
+    <h3>Using Safari (recommended)</h3>
+    <ol>
+      <li>Open this page in <b>Safari</b>.</li>
+      <li>Tap the <b>Share</b> button (square with an up arrow). On newer iPhones, tap the <b>•••</b> button by the address bar first, then <b>Share</b>.</li>
+      <li>Scroll down and tap <b>Add to Home Screen</b>. Don't see it? Tap <b>View More</b> or <b>Edit Actions</b>.</li>
+      <li>If you see <b>Open as Web App</b>, leave it on.</li>
+      <li>Tap <b>Add</b> in the top-right corner.</li>
+    </ol>
+    <h3>Using Chrome or Edge</h3>
+    <ol>
+      <li>Tap the <b>Share</b> button next to the address bar.</li>
+      <li>Tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+    </ol>
+    <div class="a2hs-tip">Can't find it? Copy the web address, open it in Safari, and follow the Safari steps.</div>
+    <h3>Good to know</h3>
+    <ul>
+      <li><b>Move it:</b> press and hold the icon, then drag.</li>
+      <li><b>Remove it:</b> press and hold, then tap <b>Remove App</b>. Only the shortcut is removed.</li>
+      <li><b>Updates:</b> nothing to install; you always get the latest version.</li>
+    </ul>
+    <button id="a2hs-close" type="button">Got it</button>
+  </div>
+</div>
+<script>
+(function(){
+  var btn=document.getElementById('a2hs-btn'),ov=document.getElementById('a2hs-overlay'),cl=document.getElementById('a2hs-close');
+  var standalone=(window.navigator.standalone===true)||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);
+  if(standalone){btn.style.display='none';return;}
+  btn.addEventListener('click',function(){ov.classList.add('open');});
+  cl.addEventListener('click',function(){ov.classList.remove('open');});
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('open');});
+})();
+</script>
+<!-- /Add to Home Screen helper -->
+
 </body>
 </html>
